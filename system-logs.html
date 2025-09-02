@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统日志 - 大家共治后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/tab-system.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/search-component.js"></script>
+    <script src="components/navigation.js"></script>
+    <script src="components/theme-toggle.js"></script>
+    <style>
+        .sidebar-transition {
+            transition: all 0.3s ease;
+        }
+        .log-level-error { @apply bg-red-100 text-red-800; }
+        .log-level-warning { @apply bg-yellow-100 text-yellow-800; }
+        .log-level-info { @apply bg-blue-100 text-blue-800; }
+        .log-level-debug { @apply bg-gray-100 text-gray-800; }
+        .log-level-success { @apply bg-green-100 text-green-800; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation -->
+            <div id="top-navigation-container"></div>
+
+            <!-- Page Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6">
+            <!-- Page Header -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 mb-2">系统日志</h1>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="exportLogs()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>导出
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Log Filters -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="p-6">
+                    <div class="grid grid-cols-12 gap-4">
+                        <!-- 开始时间 -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">开始时间</label>
+                            <input type="date" id="startTime" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <!-- 结束时间 -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">结束时间</label>
+                            <input type="date" id="endTime" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <!-- 类型 -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">类型</label>
+                            <select id="logLevel" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">全部类型</option>
+                                <option value="error">错误</option>
+                                <option value="warning">警告</option>
+                                <option value="success">成功</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 模块 -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">模块</label>
+                            <select id="logModule" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">全部模块</option>
+                                <option value="auth">用户认证</option>
+                                <option value="api">API接口</option>
+                                <option value="database">数据库</option>
+                                <option value="cache">缓存系统</option>
+                                <option value="notification">通知系统</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 搜索框 -->
+                        <div class="col-span-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">搜索</label>
+                            <div class="flex">
+                                <input type="text" 
+                                       id="searchInput"
+                                       placeholder="请输入搜索关键词" 
+                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <button onclick="filterLogs()" class="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors border border-blue-600">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 空白区域 -->
+                        <div class="col-span-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log List -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">模块</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">内容</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP地址</th>
+                                </tr>
+                            </thead>
+                        <tbody id="logTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- 日志记录将通过JavaScript动态生�?-->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                        <!-- 左侧：记录信息和分页条数选择器 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div class="text-sm text-gray-500">
+                                显示 <span class="font-medium">1-10</span> 条，共 <span class="font-medium">156</span> 条记录
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600">每页显示</label>
+                                <select id="pageSize" class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="10" selected>10条</option>
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧：分页控件 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <!-- 页码按钮组 -->
+                            <div class="flex items-center space-x-1">
+                                <!-- 上一页 -->
+                                <button class="prev-btn px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <i class="fas fa-chevron-left mr-1"></i>上一页
+                                </button>
+                                
+                                <!-- 页码按钮 -->
+                                <button class="page-btn px-3 py-1 text-sm bg-blue-600 text-white rounded font-medium">1</button>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">4</button>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">5</button>
+                                <span class="px-2 py-1 text-sm text-gray-500">...</span>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">16</button>
+                                
+                                <!-- 下一页 -->
+                                <button class="next-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                                    下一页<i class="fas fa-chevron-right ml-1"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- 页码跳转 -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600">跳转到</span>
+                                <input type="number" min="1" max="16" value="1" class="w-16 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <span class="text-sm text-gray-600">页</span>
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+               
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 侧边栏切换功能已由layout.js处理
+
+        // 登出功能
+        function logout() {
+            window.location.href = 'login.html';
+        }
+
+        // 模拟日志数据
+        const sampleLogs = [
+            {
+                time: '2024-12-20 15:30:25',
+                level: 'error',
+                module: 'database',
+                message: '数据库连接超时',
+                user: '系统',
+                ip: '127.0.0.1'
+            },
+            {
+                time: '2024-12-20 15:29:18',
+                level: 'warning',
+                module: 'auth',
+                message: '用户登录失败次数过多',
+                user: { name: '张三', phone: '13800138001' },
+                ip: '192.168.1.100'
+            },
+            {
+                time: '2024-12-20 15:28:45',
+                level: 'info',
+                module: 'api',
+                message: '用户成功登录系统',
+                user: { name: '李四', phone: '13900139002' },
+                ip: '192.168.1.50'
+            },
+            {
+                time: '2024-12-20 15:27:32',
+                level: 'success',
+                module: 'notification',
+                message: '邮件通知发送成功',
+                user: '系统',
+                ip: '127.0.0.1'
+            },
+            {
+                time: '2024-12-20 15:26:15',
+                level: 'debug',
+                module: 'cache',
+                message: '缓存清理完成',
+                user: '系统',
+                ip: '127.0.0.1'
+            },
+            {
+                time: '2024-12-20 15:25:08',
+                level: 'info',
+                module: 'api',
+                message: '获取用户列表',
+                user: { name: '王五', phone: '13700137003' },
+                ip: '192.168.1.50'
+            },
+            {
+                time: '2024-12-20 15:24:42',
+                level: 'warning',
+                module: 'database',
+                message: '数据库查询耗时较长',
+                user: '系统',
+                ip: '127.0.0.1'
+            },
+            {
+                time: '2024-12-20 15:23:55',
+                level: 'success',
+                module: 'auth',
+                message: '用户权限验证通过',
+                user: { name: '赵六', phone: '13600136004' },
+                ip: '192.168.1.75'
+            },
+            {
+                time: '2024-12-20 15:22:30',
+                level: 'error',
+                module: 'api',
+                message: 'API请求频率超限',
+                user: { name: '孙七', phone: '13500135005' },
+                ip: '203.0.113.1'
+            },
+            {
+                time: '2024-12-20 15:21:18',
+                level: 'info',
+                module: 'notification',
+                message: '系统维护通知已发送',
+                user: '系统',
+                ip: '127.0.0.1'
+            }
+        ];
+
+        // 渲染日志表格
+        function renderLogs(logs = sampleLogs) {
+            const tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = '';
+
+            logs.forEach(log => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${log.time}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full log-level-${log.level}">
+                            ${getLevelText(log.level)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${getModuleText(log.module)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${log.message}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatUser(log.user)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${log.ip}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // 获取级别文本
+        function getLevelText(level) {
+            const levelMap = {
+                'error': '错误',
+                'warning': '警告',
+                'info': '信息',
+                'debug': '调试',
+                'success': '成功'
+            };
+            return levelMap[level] || level;
+        }
+
+        // 获取模块文本
+        function getModuleText(module) {
+            const moduleMap = {
+                'auth': '用户认证',
+                'api': 'API接口',
+                'database': '数据库',
+                'cache': '缓存系统',
+                'notification': '通知系统'
+            };
+            return moduleMap[module] || module;
+        }
+
+        // 格式化用户信息
+        function formatUser(user) {
+            if (typeof user === 'object' && user.name && user.phone) {
+                return `<div class="text-gray-900">${user.name}</div><div class="text-xs text-gray-500">${user.phone}</div>`;
+            }
+            return user;
+        }
+
+        // 筛选日志
+        function filterLogs() {
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const logLevel = document.getElementById('logLevel').value;
+            const logModule = document.getElementById('logModule').value;
+            const searchContent = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filteredLogs = sampleLogs;
+            
+            // 时间筛选
+            if (startTime) {
+                filteredLogs = filteredLogs.filter(log => {
+                    const logDate = new Date(log.time).toISOString().split('T')[0];
+                    return logDate >= startTime;
+                });
+            }
+            
+            if (endTime) {
+                filteredLogs = filteredLogs.filter(log => {
+                    const logDate = new Date(log.time).toISOString().split('T')[0];
+                    return logDate <= endTime;
+                });
+            }
+            
+            // 类型筛选
+            if (logLevel) {
+                filteredLogs = filteredLogs.filter(log => log.level === logLevel);
+            }
+            
+            // 模块筛选
+            if (logModule) {
+                filteredLogs = filteredLogs.filter(log => log.module === logModule);
+            }
+            
+            // 内容搜索
+            if (searchContent) {
+                filteredLogs = filteredLogs.filter(log => 
+                    log.message.toLowerCase().includes(searchContent)
+                );
+            }
+            
+
+            
+
+            
+            renderLogs(filteredLogs);
+        }
+
+        // 重置筛选
+        function resetFilters() {
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+            document.getElementById('logLevel').value = '';
+            document.getElementById('logModule').value = '';
+            document.getElementById('searchInput').value = '';
+            renderLogs();
+        }
+
+        // 导出日志
+        function exportLogs() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "时间,级别,模块,消息,用户,IP地址\n"
+                + sampleLogs.map(log => {
+                    const userStr = typeof log.user === 'object' && log.user.name ? 
+                        `${log.user.name}(${log.user.phone})` : log.user;
+                    return `"${log.time}","${getLevelText(log.level)}","${getModuleText(log.module)}","${log.message}","${userStr}","${log.ip}"`;
+                }).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "system_logs.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 清空日志
+        function clearLogs() {
+            if (confirm('确定要清空所有日志吗？此操作不可恢复！')) {
+                document.getElementById('logTableBody').innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">暂无日志记录</td></tr>';
+                alert('日志已清空');
+            }
+        }
+
+        // 页面初始化
+         document.addEventListener('DOMContentLoaded', function() {
+             console.log('页面DOM加载完成');
+             
+             // 检查必要的函数是否存在
+             console.log('initPage函数存在:', typeof initPage === 'function');
+             console.log('createSidebar函数存在:', typeof createSidebar === 'function');
+             console.log('renderTopNavigation函数存在:', typeof renderTopNavigation === 'function');
+             
+             // 检查容器元素是否存在
+             console.log('sidebar-container存在:', !!document.getElementById('sidebar-container'));
+             console.log('top-navigation-container存在:', !!document.getElementById('top-navigation-container'));
+             
+             // 确保layout.js加载完成后再初始化
+             setTimeout(() => {
+                 console.log('开始初始化页面');
+                 if (typeof initPage === 'function') {
+                     initPage('system-logs');
+                 } else {
+                     console.error('initPage函数未定义，请检查layout.js是否正确加载');
+                 }
+                 
+                 // 绑定搜索框回车事件
+                 const searchInput = document.getElementById('searchInput');
+                 if (searchInput) {
+                     searchInput.addEventListener('keypress', function(e) {
+                         if (e.key === 'Enter') {
+                             filterLogs();
+                         }
+                     });
+                 }
+                 
+                 renderLogs();
+             }, 200);
+         });
+    </script>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+

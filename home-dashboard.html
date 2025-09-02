@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仪表板 - 大家共治后台管理系统</title>
+    <!-- 关键：先加载layout.js预设样式，再加载Tailwind -->
+    <script src="js/layout.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入组件 -->
+    <script src="js/tab-system.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation Container -->
+            <div id="top-navigation-container"></div>
+
+            <!-- Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6">
+            <!-- Welcome Section -->
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">欢迎回来！</h1>
+                <p class="text-gray-600">这里是您的数据概览和快捷操作入口</p>
+            </div>
+            
+            <!-- 筛选卡片区域 -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <!-- 筛选标题 -->
+                    <div class="flex items-center">
+                        <i class="fas fa-filter text-blue-600 mr-2"></i>
+                        <h2 class="text-lg font-semibold text-gray-900">数据筛选</h2>
+                    </div>
+                    
+                    <!-- 筛选控件区域 -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <!-- 小区名称下拉搜索框 -->
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">小区名称</label>
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    id="communitySearch" 
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                                    placeholder="搜索或选择小区..."
+                                    autocomplete="off"
+                                >
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <i class="fas fa-chevron-down text-gray-400 cursor-pointer" id="communityDropdownIcon"></i>
+                                </div>
+                                
+                                <!-- 下拉选项列表 -->
+                                <div id="communityDropdown" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto">
+                                    <div class="p-2">
+                                        <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="all">
+                                            <i class="fas fa-globe text-blue-600 mr-2"></i>
+                                            全部小区
+                                        </div>
+                                        <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="sunshine-garden">
+                                            <i class="fas fa-building text-green-600 mr-2"></i>
+                                            阳光花园小区
+                                        </div>
+                                        <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="golden-coast">
+                                            <i class="fas fa-building text-yellow-600 mr-2"></i>
+                                            金色海岸小区
+                                        </div>
+                                        <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="green-valley">
+                                            <i class="fas fa-building text-emerald-600 mr-2"></i>
+                                            绿谷家园小区
+                                        </div>
+                                        <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="blue-sky">
+                                            <i class="fas fa-building text-sky-600 mr-2"></i>
+                                            蓝天雅苑小区
+                                        </div>
+                                        <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="peaceful-home">
+                                            <i class="fas fa-building text-purple-600 mr-2"></i>
+                                            安居家园小区
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                        <!-- 应用筛选按钮和重置按钮 -->
+                        <div class="flex items-end gap-3">
+                            <button id="applyFilters" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center">
+                                <i class="fas fa-check mr-2"></i>
+                                应用筛选
+                            </button>
+                            <button id="resetFilters" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors flex items-center">
+                                <i class="fas fa-undo mr-2"></i>
+                                重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 当前筛选状态显示 -->
+                <div id="filterStatus" class="mt-4 pt-4 border-t border-gray-200">
+                    <!-- 蓝色文字已移除，避免与下方标签重复显示 -->
+                    
+                    <!-- 已选择小区标签显示 -->
+                    <div id="selectedCommunitiesTags" class="flex flex-wrap gap-2">
+                        <!-- 动态生成的小区标签将显示在这里 -->
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- 业主认证率趋势图表 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6" style="min-height: 400px;">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">业主认证率趋势</h3>
+                        <div class="flex space-x-2">
+                            <button id="ownerVerificationDay" class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">日</button>
+                            <button id="ownerVerificationWeek" class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors">周</button>
+                            <button id="ownerVerificationMonth" class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors">月</button>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <span class="text-3xl font-bold text-gray-900">78.5%</span>
+                        <span class="text-gray-600 text-sm ml-2">↗ 2.3%</span>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="ownerVerificationChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 小区活跃度统计图表 -->
+                <div class="bg-white rounded-lg shadow p-6" style="min-height: 400px;">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">小区活跃度统计</h3>
+                        <div class="flex space-x-2">
+                            <button id="activityDistributionDay" class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">日</button>
+                            <button id="activityDistributionWeek" class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors">周</button>
+                            <button id="activityDistributionMonth" class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors">月</button>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <span class="text-3xl font-bold text-gray-900">85.6%</span>
+                        <span class="text-gray-600 text-sm ml-2">平均活跃度 ↗ 4.1%</span>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="activityDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 发帖类型统计 -->
+            <div class="grid grid-cols-1 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6" style="min-height: 400px;">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">发帖类型统计</h3>
+                        <div class="flex space-x-2">
+                            <button id="postStatsDay" class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">日</button>
+                            <button id="postStatsWeek" class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors">周</button>
+                            <button id="postStatsMonth" class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors">月</button>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <span class="text-2xl font-bold text-gray-900" id="totalPostsCount">1,856</span>
+                        <span class="text-gray-600 text-sm ml-1" id="postsPeriodLabel">本月发帖</span>
+                        <span class="text-gray-600 text-sm ml-2" id="postsGrowthRate">↗ 18.7%</span>
+                    </div>
+                    
+                    
+                    <!-- 发帖趋势图表 -->
+                    <div style="height: 250px;">
+                        <canvas id="postTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 日活月活统计和流失率分析 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6" style="min-height: 400px;">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">用户活跃度统计</h3>
+                        <div class="flex space-x-2">
+                            <button id="userActivityDay" class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">日</button>
+                            <button id="userActivityWeek" class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors">周</button>
+                            <button id="userActivityMonth" class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors">月</button>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex items-center space-x-4">
+                            <div>
+                                <span class="text-2xl font-bold text-gray-900">3,245</span>
+                                <span class="text-sm text-gray-500 ml-1">日活</span>
+                            </div>
+                            <div>
+                                <span class="text-2xl font-bold text-gray-900">8,967</span>
+                                <span class="text-sm text-gray-500 ml-1">月活</span>
+                            </div>
+                        </div>
+                        <span class="text-gray-600 text-sm">↗ 8.3% 较上月</span>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="userActivityChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6" style="min-height: 400px;">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">用户流失分析</h3>
+                        <span class="text-sm text-gray-500">按登录时间统计</span>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex items-center space-x-4">
+                            <div>
+                                <span class="text-2xl font-bold text-gray-900" id="totalChurnUsers">1,245</span>
+                                <span class="text-sm text-gray-500 ml-1">流失用户</span>
+                            </div>
+                            <div>
+                                <span class="text-2xl font-bold text-gray-900" id="churnRate">12.8%</span>
+                                <span class="text-sm text-gray-500 ml-1">流失率</span>
+                            </div>
+                        </div>
+                        <span class="text-gray-600 text-sm">↗ 2.3% 较上月</span>
+                    </div>
+                    
+                    <!-- 流失分析饼图 -->
+                    <div style="height: 180px;">
+                        <canvas id="churnAnalysisChart"></canvas>
+                    </div>
+                    
+                    <!-- 流失统计详情 -->
+                    <div class="mt-3 space-y-2">
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+                                <span class="text-gray-700">七天未登录</span>
+                            </div>
+                            <span class="font-semibold text-gray-700" id="sevenDaysChurn">456人 (36.6%)</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                                <span class="text-gray-700">超一月未登录</span>
+                            </div>
+                            <span class="font-semibold text-gray-700" id="oneMonthChurn">523人 (42.0%)</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-gray-600 rounded-full mr-2"></div>
+                                <span class="text-gray-700">超三月未登录</span>
+                            </div>
+                            <span class="font-semibold text-gray-700" id="threeMonthsChurn">266人 (21.4%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+
+    <script>
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initPage('dashboard');
+            // 初始化图表
+            initCharts();
+
+        });
+
+
+
+        // 全局变量存储图表实例
+        let ownerVerificationChart = null;
+        let activityDistributionChart = null;
+        let userActivityChart = null;
+
+        // 初始化图表
+        function initCharts() {
+            // 业主认证率趋势图
+            const ownerVerificationCtx = document.getElementById('ownerVerificationChart');
+            if (ownerVerificationCtx) {
+                // 如果图表实例已存在，先销毁它
+                if (ownerVerificationChart) {
+                    ownerVerificationChart.destroy();
+                    ownerVerificationChart = null;
+                }
+                
+                ownerVerificationChart = new Chart(ownerVerificationCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                        datasets: [{
+                            label: '认证率',
+                            data: [72.1, 74.3, 75.8, 76.2, 77.1, 78.5, 78.5],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 70,
+                                max: 85,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 小区活跃度统计图 - 支持大量小区数据
+            const activityDistributionCtx = document.getElementById('activityDistributionChart');
+            if (activityDistributionCtx) {
+                // 如果图表实例已存在，先销毁它
+                if (activityDistributionChart) {
+                    activityDistributionChart.destroy();
+                    activityDistributionChart = null;
+                }
+                
+                // 模拟大量小区数据，实际应从API获取
+                const communityData = generateCommunityActivityData();
+                
+                activityDistributionChart = new Chart(activityDistributionCtx.getContext('2d'), {
+                    type: 'bar', // Chart.js 3.x 使用bar类型
+                    data: {
+                        labels: communityData.labels,
+                        datasets: [{
+                            label: '活跃度(%)',
+                            data: communityData.data,
+                            backgroundColor: function(context) {
+                                const value = context.parsed.x;
+                                if (value >= 90) return 'rgba(34, 197, 94, 0.8)'; // 绿色 - 高活跃度
+                                if (value >= 80) return 'rgba(59, 130, 246, 0.8)'; // 蓝色 - 中高活跃度
+                                if (value >= 70) return 'rgba(251, 191, 36, 0.8)'; // 黄色 - 中等活跃度
+                                if (value >= 60) return 'rgba(249, 115, 22, 0.8)'; // 橙色 - 中低活跃度
+                                return 'rgba(239, 68, 68, 0.8)'; // 红色 - 低活跃度
+                            },
+                            borderColor: function(context) {
+                                const value = context.parsed.x;
+                                if (value >= 90) return 'rgb(34, 197, 94)';
+                                if (value >= 80) return 'rgb(59, 130, 246)';
+                                if (value >= 70) return 'rgb(251, 191, 36)';
+                                if (value >= 60) return 'rgb(249, 115, 22)';
+                                return 'rgb(239, 68, 68)';
+                            },
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y', // Chart.js 3.x 语法
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.x + '%';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    font: {
+                                        size: 10
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 生成小区活跃度数据的函数
+            function generateCommunityActivityData() {
+                // 显示活跃度最高的前15个小区
+                const communities = [
+                    { name: '阳光花园小区', activity: 95.2 },
+                    { name: '金色海岸小区', activity: 93.8 },
+                    { name: '蓝天雅苑小区', activity: 92.1 },
+                    { name: '绿谷家园小区', activity: 90.5 },
+                    { name: '和谐社区', activity: 89.3 },
+                    { name: '安居家园小区', activity: 87.9 },
+                    { name: '翠湖名苑', activity: 86.4 },
+                    { name: '紫金花园', activity: 85.1 },
+                    { name: '春天里小区', activity: 83.7 },
+                    { name: '幸福家园', activity: 82.3 },
+                    { name: '梧桐雅居', activity: 80.9 },
+                    { name: '锦绣华庭', activity: 79.5 },
+                    { name: '碧水蓝天', activity: 78.2 },
+                    { name: '花语城', activity: 76.8 },
+                    { name: '御景园', activity: 75.4 }
+                ];
+                
+                return {
+                    labels: communities.map(c => c.name),
+                    data: communities.map(c => c.activity)
+                };
+            }
+
+            // 用户活跃度统计图
+            const userActivityCtx = document.getElementById('userActivityChart');
+            if (userActivityCtx) {
+                // 如果图表实例已存在，先销毁它
+                if (userActivityChart) {
+                    userActivityChart.destroy();
+                    userActivityChart = null;
+                }
+                
+                userActivityChart = new Chart(userActivityCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                        datasets: [{
+                            label: '日活用户',
+                            data: [2845, 3124, 3456, 3234, 3567, 2987, 2654],
+                            backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                            borderColor: 'rgb(99, 102, 241)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 发帖统计图表相关功能
+        let postTrendChart = null;
+        let currentPostPeriod = 'day';
+
+        // 模拟发帖数据
+        const postStatsData = {
+            day: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                approval: [8, 5, 12, 18, 22, 15, 10],
+                suggestion: [12, 8, 15, 25, 32, 28, 18],
+                repair: [5, 3, 8, 12, 15, 13, 9],
+                tracking: [6, 4, 9, 14, 18, 16, 11],
+                announcement: [4, 2, 6, 10, 12, 8, 6],
+                notice: [8, 6, 12, 18, 22, 20, 14],
+                dynamic: [15, 10, 18, 28, 35, 25, 20],
+                total: 1856,
+                period: '今日发帖',
+                growth: '↗ 12.3%'
+            },
+            week: {
+                labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                approval: [45, 52, 48, 58, 62, 42, 38],
+                suggestion: [65, 72, 68, 78, 85, 62, 58],
+                repair: [23, 28, 25, 32, 35, 22, 20],
+                tracking: [35, 42, 38, 48, 52, 35, 30],
+                announcement: [18, 22, 20, 25, 28, 18, 15],
+                notice: [45, 52, 48, 58, 62, 42, 38],
+                dynamic: [78, 88, 82, 95, 105, 75, 68],
+                total: 4856,
+                period: '本周发帖',
+                growth: '↗ 8.7%'
+            },
+            month: {
+                labels: ['第1周', '第2周', '第3周', '第4周'],
+                approval: [345, 398, 368, 445],
+                suggestion: [456, 523, 489, 612],
+                repair: [234, 267, 245, 298],
+                tracking: [298, 342, 318, 385],
+                announcement: [156, 178, 165, 198],
+                notice: [543, 621, 578, 698],
+                dynamic: [815, 934, 868, 1051],
+                total: 12856,
+                period: '本月发帖',
+                growth: '↗ 18.7%'
+            }
+        };
+
+        /**
+         * 初始化发帖统计图表
+         */
+        function initPostTrendChart() {
+            const ctx = document.getElementById('postTrendChart');
+            if (!ctx) return;
+
+            // 如果图表实例已存在，先销毁它
+            if (postTrendChart) {
+                postTrendChart.destroy();
+                postTrendChart = null;
+            }
+
+            const data = postStatsData[currentPostPeriod];
+            
+            postTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: '审批',
+                            data: data.approval,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: '小区建议',
+                            data: data.suggestion,
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: '报事报修',
+                            data: data.repair,
+                            borderColor: 'rgb(239, 68, 68)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: '事件追踪',
+                            data: data.tracking,
+                            borderColor: 'rgb(147, 51, 234)',
+                            backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: '公告',
+                            data: data.announcement,
+                            borderColor: 'rgb(245, 158, 11)',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: '通知',
+                            data: data.notice,
+                            borderColor: 'rgb(168, 85, 247)',
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: '动态',
+                            data: data.dynamic,
+                            borderColor: 'rgb(6, 182, 212)',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        /**
+         * 更新发帖统计数据显示
+         * @param {string} period - 时间周期 (day/week/month)
+         */
+        function updatePostStats(period) {
+            const data = postStatsData[period];
+            if (!data) return;
+
+            // 更新统计数字
+            document.getElementById('totalPostsCount').textContent = data.total.toLocaleString();
+            document.getElementById('postsPeriodLabel').textContent = data.period;
+            document.getElementById('postsGrowthRate').textContent = data.growth;
+
+            // 更新图表
+            if (postTrendChart) {
+                postTrendChart.data.labels = data.labels;
+                postTrendChart.data.datasets[0].data = data.approval;
+                postTrendChart.data.datasets[1].data = data.suggestion;
+                postTrendChart.data.datasets[2].data = data.repair;
+                postTrendChart.data.datasets[3].data = data.tracking;
+                postTrendChart.data.datasets[4].data = data.announcement;
+                postTrendChart.data.datasets[5].data = data.notice;
+                postTrendChart.data.datasets[6].data = data.dynamic;
+                postTrendChart.update();
+            }
+        }
+
+        /**
+         * 设置时间维度按钮状态
+         * @param {string} activePeriod - 当前激活的时间周期
+         */
+        function setPostStatsButtonState(activePeriod) {
+            const buttons = ['postStatsDay', 'postStatsWeek', 'postStatsMonth'];
+            const periods = ['day', 'week', 'month'];
+            
+            buttons.forEach((buttonId, index) => {
+                const button = document.getElementById(buttonId);
+                if (periods[index] === activePeriod) {
+                    button.className = 'px-3 py-1 text-sm bg-orange-100 text-orange-600 rounded-md hover:bg-orange-200 transition-colors';
+                } else {
+                    button.className = 'px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors';
+                }
+            });
+        }
+
+        /**
+         * 绑定业主认证率趋势相关事件
+         */
+        function bindOwnerVerificationEvents() {
+            // 日统计按钮
+            document.getElementById('ownerVerificationDay')?.addEventListener('click', function() {
+                setOwnerVerificationButtonState('day');
+                updateOwnerVerificationData('day');
+            });
+
+            // 周统计按钮
+            document.getElementById('ownerVerificationWeek')?.addEventListener('click', function() {
+                setOwnerVerificationButtonState('week');
+                updateOwnerVerificationData('week');
+            });
+
+            // 月统计按钮
+            document.getElementById('ownerVerificationMonth')?.addEventListener('click', function() {
+                setOwnerVerificationButtonState('month');
+                updateOwnerVerificationData('month');
+            });
+        }
+
+        /**
+         * 设置业主认证率趋势按钮状态
+         * @param {string} activePeriod - 当前激活的时间周期
+         */
+        function setOwnerVerificationButtonState(activePeriod) {
+            const buttons = ['ownerVerificationDay', 'ownerVerificationWeek', 'ownerVerificationMonth'];
+            const periods = ['day', 'week', 'month'];
+            
+            buttons.forEach((buttonId, index) => {
+                const button = document.getElementById(buttonId);
+                if (periods[index] === activePeriod) {
+                    button.className = 'px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors';
+                } else {
+                    button.className = 'px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors';
+                }
+            });
+        }
+
+        /**
+         * 更新业主认证率趋势数据
+         * @param {string} period - 时间周期 (day/week/month)
+         */
+        function updateOwnerVerificationData(period) {
+            // 模拟不同时间周期的数据
+            const verificationData = {
+                day: {
+                    percentage: '76.8%',
+                    growth: '↗ 0.8%',
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                    data: [75.2, 75.8, 76.1, 76.5, 76.8, 76.8, 76.8]
+                },
+                week: {
+                    percentage: '77.6%',
+                    growth: '↗ 1.5%',
+                    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                    data: [74.1, 75.3, 75.8, 76.2, 76.9, 77.2, 77.6]
+                },
+                month: {
+                    percentage: '78.5%',
+                    growth: '↗ 2.3%',
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                    data: [72.1, 74.3, 75.8, 76.2, 77.1, 78.5, 78.5]
+                }
+            };
+
+            const data = verificationData[period];
+            if (!data) return;
+
+            // 更新统计数字
+            const percentageElement = document.querySelector('#ownerVerificationChart').closest('.bg-white').querySelector('.text-3xl');
+            const growthElement = document.querySelector('#ownerVerificationChart').closest('.bg-white').querySelector('.text-gray-600');
+            
+            if (percentageElement) percentageElement.textContent = data.percentage;
+            if (growthElement) growthElement.textContent = data.growth;
+
+            // 更新图表数据
+            if (ownerVerificationChart) {
+                ownerVerificationChart.data.labels = data.labels;
+                ownerVerificationChart.data.datasets[0].data = data.data;
+                ownerVerificationChart.update('active');
+            }
+
+            console.log(`业主认证率趋势切换到${period === 'day' ? '日' : period === 'week' ? '周' : '月'}视图:`, data);
+        }
+
+        /**
+         * 绑定活跃度分布相关事件
+         */
+        function bindActivityDistributionEvents() {
+            // 日统计按钮
+            document.getElementById('activityDistributionDay')?.addEventListener('click', function() {
+                setActivityDistributionButtonState('day');
+                updateActivityDistributionData('day');
+            });
+
+            // 周统计按钮
+            document.getElementById('activityDistributionWeek')?.addEventListener('click', function() {
+                setActivityDistributionButtonState('week');
+                updateActivityDistributionData('week');
+            });
+
+            // 月统计按钮
+            document.getElementById('activityDistributionMonth')?.addEventListener('click', function() {
+                setActivityDistributionButtonState('month');
+                updateActivityDistributionData('month');
+            });
+        }
+
+        /**
+         * 设置活跃度分布按钮状态
+         * @param {string} activePeriod - 当前激活的时间周期
+         */
+        function setActivityDistributionButtonState(activePeriod) {
+            const buttons = ['activityDistributionDay', 'activityDistributionWeek', 'activityDistributionMonth'];
+            const periods = ['day', 'week', 'month'];
+            
+            buttons.forEach((buttonId, index) => {
+                const button = document.getElementById(buttonId);
+                if (periods[index] === activePeriod) {
+                    button.className = 'px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors';
+                } else {
+                    button.className = 'px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors';
+                }
+            });
+        }
+
+        /**
+         * 更新活跃度分布数据
+         * @param {string} period - 时间周期 (day/week/month)
+         */
+        function updateActivityDistributionData(period) {
+            // 生成不同时间周期的小区活跃度数据
+            function generatePeriodCommunityData(period) {
+                const baseCommunities = [
+                    '阳光花园小区', '金色海岸小区', '蓝天雅苑小区', '绿谷家园小区', '和谐社区',
+                    '安居家园小区', '翠湖名苑', '紫金花园', '春天里小区', '幸福家园',
+                    '梧桐雅居', '锦绣华庭', '碧水蓝天', '花语城', '御景园'
+                ];
+                
+                // 根据时间周期调整活跃度基数
+                let baseActivity;
+                let variance;
+                switch(period) {
+                    case 'day':
+                        baseActivity = 75;
+                        variance = 15;
+                        break;
+                    case 'week':
+                        baseActivity = 85;
+                        variance = 12;
+                        break;
+                    case 'month':
+                        baseActivity = 90;
+                        variance = 10;
+                        break;
+                    default:
+                        baseActivity = 80;
+                        variance = 15;
+                }
+                
+                const communities = baseCommunities.map((name, index) => {
+                    // 为每个小区生成相对稳定但有差异的活跃度
+                    const seed = name.length + index;
+                    const randomFactor = (Math.sin(seed) + 1) / 2; // 0-1之间的伪随机数
+                    const activity = baseActivity + (randomFactor - 0.5) * variance;
+                    return {
+                        name: name,
+                        activity: Math.max(50, Math.min(100, activity)) // 限制在50-100之间
+                    };
+                });
+                
+                // 按活跃度排序，取前15个
+                communities.sort((a, b) => b.activity - a.activity);
+                return communities.slice(0, 15);
+            }
+            
+            const communityData = generatePeriodCommunityData(period);
+            const avgActivity = communityData.reduce((sum, c) => sum + c.activity, 0) / communityData.length;
+            
+            // 模拟统计数据
+            const activityStats = {
+                day: { percentage: '72.3%', growth: '↗ 2.1%' },
+                week: { percentage: '78.6%', growth: '↗ 3.4%' },
+                month: { percentage: '83.2%', growth: '↗ 5.7%' }
+            };
+
+            const stats = activityStats[period] || activityStats.day;
+            
+            // 更新统计数字
+            const percentageElement = document.querySelector('#activityDistributionChart').closest('.bg-white').querySelector('.text-3xl');
+            const growthElement = document.querySelector('#activityDistributionChart').closest('.bg-white').querySelector('.text-gray-600');
+            
+            if (percentageElement) percentageElement.textContent = stats.percentage;
+            if (growthElement) growthElement.textContent = stats.growth;
+
+            // 更新图表数据
+            if (activityDistributionChart) {
+                activityDistributionChart.data.labels = communityData.map(c => c.name);
+                activityDistributionChart.data.datasets[0].data = communityData.map(c => c.activity.toFixed(1));
+                activityDistributionChart.update('active');
+            }
+
+            console.log(`小区活跃度切换到${period === 'day' ? '日' : period === 'week' ? '周' : '月'}视图:`, {
+                period,
+                avgActivity: avgActivity.toFixed(1),
+                communityCount: communityData.length
+            });
+        }
+
+        /**
+         * 绑定发帖统计相关事件
+         */
+        function bindPostStatsEvents() {
+            // 日统计按钮
+            document.getElementById('postStatsDay')?.addEventListener('click', function() {
+                currentPostPeriod = 'day';
+                setPostStatsButtonState('day');
+                updatePostStats('day');
+            });
+
+            // 周统计按钮
+            document.getElementById('postStatsWeek')?.addEventListener('click', function() {
+                currentPostPeriod = 'week';
+                setPostStatsButtonState('week');
+                updatePostStats('week');
+            });
+
+            // 月统计按钮
+            document.getElementById('postStatsMonth')?.addEventListener('click', function() {
+                currentPostPeriod = 'month';
+                setPostStatsButtonState('month');
+                updatePostStats('month');
+            });
+        }
+
+        /**
+         * 绑定用户活跃度统计相关事件
+         */
+        function bindUserActivityEvents() {
+            // 日统计按钮
+            document.getElementById('userActivityDay')?.addEventListener('click', function() {
+                setUserActivityButtonState('day');
+                updateUserActivityData('day');
+            });
+
+            // 周统计按钮
+            document.getElementById('userActivityWeek')?.addEventListener('click', function() {
+                setUserActivityButtonState('week');
+                updateUserActivityData('week');
+            });
+
+            // 月统计按钮
+            document.getElementById('userActivityMonth')?.addEventListener('click', function() {
+                setUserActivityButtonState('month');
+                updateUserActivityData('month');
+            });
+        }
+
+        /**
+         * 设置用户活跃度统计按钮状态
+         * @param {string} activePeriod - 激活的时间周期
+         */
+        function setUserActivityButtonState(activePeriod) {
+            const buttons = {
+                day: document.getElementById('userActivityDay'),
+                week: document.getElementById('userActivityWeek'),
+                month: document.getElementById('userActivityMonth')
+            };
+
+            // 重置所有按钮样式
+            Object.values(buttons).forEach(button => {
+                if (button) {
+                    button.className = 'px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md transition-colors';
+                }
+            });
+
+            // 设置激活按钮样式
+            if (buttons[activePeriod]) {
+                buttons[activePeriod].className = 'px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors';
+            }
+        }
+
+        /**
+         * 更新用户活跃度统计数据
+         * @param {string} period - 时间周期 (day/week/month)
+         */
+        function updateUserActivityData(period) {
+            // 模拟不同时间周期的用户活跃度数据
+            const userActivityData = {
+                day: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                    data: [1245, 856, 2134, 3456, 4123, 3567, 2234],
+                    dailyActive: '3,245',
+                    monthlyActive: '8,967',
+                    growth: '↗ 8.3%'
+                },
+                week: {
+                    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                    data: [2845, 3124, 3456, 3234, 3567, 2987, 2654],
+                    dailyActive: '3,156',
+                    monthlyActive: '9,234',
+                    growth: '↗ 12.1%'
+                },
+                month: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                    data: [8234, 8567, 8923, 9156, 9234, 8967, 9123],
+                    dailyActive: '3,089',
+                    monthlyActive: '8,756',
+                    growth: '↗ 15.7%'
+                }
+            };
+
+            const data = userActivityData[period];
+            if (!data) return;
+
+            // 更新统计数字
+            const container = document.querySelector('#userActivityChart').closest('.bg-white');
+            const dailyActiveElement = container.querySelector('.text-2xl:first-of-type');
+            const monthlyActiveElement = container.querySelector('.text-2xl:last-of-type');
+            const growthElement = container.querySelector('.text-gray-600');
+            
+            if (dailyActiveElement) dailyActiveElement.textContent = data.dailyActive;
+            if (monthlyActiveElement) monthlyActiveElement.textContent = data.monthlyActive;
+            if (growthElement) growthElement.textContent = data.growth;
+
+            // 更新图表数据
+            if (userActivityChart) {
+                userActivityChart.data.labels = data.labels;
+                userActivityChart.data.datasets[0].data = data.data;
+                userActivityChart.update('active');
+            }
+
+            console.log(`用户活跃度统计切换到${period === 'day' ? '日' : period === 'week' ? '周' : '月'}视图:`, data);
+        }
+
+        /**
+         * 初始化用户流失分析饼图
+         */
+        function initChurnAnalysisChart() {
+            const ctx = document.getElementById('churnAnalysisChart');
+            if (!ctx) return;
+
+            // 流失分析数据
+            const churnData = {
+                sevenDays: 456,    // 七天未登录
+                oneMonth: 523,     // 超一月未登录
+                threeMonths: 266   // 超三月未登录
+            };
+
+            const total = churnData.sevenDays + churnData.oneMonth + churnData.threeMonths;
+            const percentages = {
+                sevenDays: ((churnData.sevenDays / total) * 100).toFixed(1),
+                oneMonth: ((churnData.oneMonth / total) * 100).toFixed(1),
+                threeMonths: ((churnData.threeMonths / total) * 100).toFixed(1)
+            };
+
+            // 更新统计数字
+            document.getElementById('totalChurnUsers').textContent = total.toLocaleString();
+            document.getElementById('sevenDaysChurn').textContent = `${churnData.sevenDays}人 (${percentages.sevenDays}%)`;
+            document.getElementById('oneMonthChurn').textContent = `${churnData.oneMonth}人 (${percentages.oneMonth}%)`;
+            document.getElementById('threeMonthsChurn').textContent = `${churnData.threeMonths}人 (${percentages.threeMonths}%)`;
+
+            // 创建饼图
+            new Chart(ctx.getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['七天未登录', '超一月未登录', '超三月未登录'],
+                    datasets: [{
+                        data: [churnData.sevenDays, churnData.oneMonth, churnData.threeMonths],
+                        backgroundColor: [
+                            '#9ca3af',  // 灰色-400
+                            '#6b7280',  // 灰色-500
+                            '#4b5563'   // 灰色-600
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false  // 隐藏图例，使用下方的自定义图例
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value}人 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 将初始化函数暴露给模块使用
+        window.initInlineCharts = function() {
+            initPostTrendChart();
+            updatePostStats(currentPostPeriod);
+            bindPostStatsEvents();
+            bindOwnerVerificationEvents(); // 绑定业主认证率趋势事件
+            bindActivityDistributionEvents(); // 绑定活跃度分布事件
+            bindUserActivityEvents(); // 绑定用户活跃度统计事件
+            initChurnAnalysisChart();  // 初始化用户流失分析饼图
+        };
+        
+        // 将initPage函数暴露给模块使用
+        window.initPageFunction = function() {
+            initPage('home-dashboard.html');
+        };
+    </script>
+    
+    <!-- 页面专属脚本 - 筛选控件和仪表板功能 -->
+    <script type="module" src="js/pages/home-dashboard.js"></script>
+        </main>
+    </div>
+</div>
+</body>
+</html>

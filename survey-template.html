@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问卷模板 - 大家共治后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/top-navigation.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="components/toggle-switch.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation Container -->
+            <div id="top-navigation-container"></div>
+
+            <!-- Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6">
+                <!-- Header -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">问卷模板</h1>
+                            <p class="text-gray-600 mt-1">创建和管理问卷调查模板</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Survey Templates Table -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-gray-900">问卷模板列表</h3>
+                            <div class="flex items-center space-x-3">
+                                <select class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option>全部状态</option>
+                                    <option>启用</option>
+                                    <option>停用</option>
+                                </select>
+                                <div class="flex items-center">
+                                    <div class="relative">
+                                        <input type="text" placeholder="搜索模板..." 
+                                               class="pl-10 pr-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 border border-blue-600 rounded-r-lg flex items-center text-sm">
+                                        搜索
+                                    </button>
+                                </div>
+                                <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2.5 rounded-lg flex items-center text-sm">
+                                    重置
+                                </button>
+                                <button onclick="createNewSurveyTemplate()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center">
+                                    <i class="fas fa-plus mr-2"></i>新建模板
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">模板名称</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">问题数量</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">更新时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后操作人</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <!-- 物业费缴费意见征集 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">物业费缴费意见征集</div>
+                                            <div class="text-sm text-gray-500">收集业主对物业费调整的意见和建议</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-20</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">张管理员</div>
+                                        <div class="text-sm text-gray-500">13800138001</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div id="survey-status-1"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button onclick="editSurveyTemplate('1')" class="text-blue-600 hover:text-blue-900 mr-3">编辑</button>
+                                        <button onclick="previewSurveyTemplate('1')" class="text-gray-600 hover:text-gray-900 mr-3">预览</button>
+                                        <button onclick="deleteSurveyTemplate('1')" class="text-red-600 hover:text-red-900">删除</button>
+                                    </td>
+                                </tr>
+                                <!-- 小区绿化改造方案 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">小区绿化改造方案</div>
+                                            <div class="text-sm text-gray-500">征集业主对小区绿化改造的意见</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">6</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-18</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">李主任</div>
+                                        <div class="text-sm text-gray-500">13900139002</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div id="survey-status-2"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button onclick="editSurveyTemplate('2')" class="text-blue-600 hover:text-blue-900 mr-3">编辑</button>
+                                        <button onclick="previewSurveyTemplate('2')" class="text-gray-600 hover:text-gray-900 mr-3">预览</button>
+                                        <button onclick="deleteSurveyTemplate('2')" class="text-red-600 hover:text-red-900">删除</button>
+                                    </td>
+                                </tr>
+                                <!-- 停车位管理调研 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">停车位管理调研</div>
+                                            <div class="text-sm text-gray-500">了解业主对停车位管理的需求</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">5</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-16</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">王秘书</div>
+                                        <div class="text-sm text-gray-500">13700137003</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div id="survey-status-3"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button onclick="editSurveyTemplate('3')" class="text-blue-600 hover:text-blue-900 mr-3">编辑</button>
+                                        <button onclick="previewSurveyTemplate('3')" class="text-gray-600 hover:text-gray-900 mr-3">预览</button>
+                                        <button onclick="deleteSurveyTemplate('3')" class="text-red-600 hover:text-red-900">删除</button>
+                                    </td>
+                                </tr>
+                                <!-- 社区活动意见收集 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">社区活动意见收集</div>
+                                            <div class="text-sm text-gray-500">收集业主对社区活动的建议</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">7</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-14</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">赵助理</div>
+                                        <div class="text-sm text-gray-500">13600136004</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div id="survey-status-4"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button onclick="editSurveyTemplate('4')" class="text-blue-600 hover:text-blue-900 mr-3">编辑</button>
+                                        <button onclick="previewSurveyTemplate('4')" class="text-gray-600 hover:text-gray-900 mr-3">预览</button>
+                                        <button onclick="deleteSurveyTemplate('4')" class="text-red-600 hover:text-red-900">删除</button>
+                                    </td>
+                                </tr>
+                                <!-- 安全设施改进建议 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">安全设施改进建议</div>
+                                            <div class="text-sm text-gray-500">征集业主对小区安全设施的改进意见</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-12</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">孙经理</div>
+                                        <div class="text-sm text-gray-500">13500135005</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div id="survey-status-5"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button onclick="editSurveyTemplate('5')" class="text-blue-600 hover:text-blue-900 mr-3">编辑</button>
+                                        <button onclick="previewSurveyTemplate('5')" class="text-gray-600 hover:text-gray-900 mr-3">预览</button>
+                                        <button onclick="deleteSurveyTemplate('5')" class="text-red-600 hover:text-red-900">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1 flex justify-between sm:hidden">
+                                <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">上一页</button>
+                                <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">下一页</button>
+                            </div>
+                            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-700">显示 <span class="font-medium">1</span> 到 <span class="font-medium">5</span> 共 <span class="font-medium">5</span> 条记录</p>
+                                </div>
+                                <div>
+                                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                        <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</button>
+                                        <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initPage('survey-template');
+            
+            // 初始化滑块组件
+            initToggleSwitches();
+        });
+        
+        // 存储滑块实例
+        const toggleSwitches = {};
+        
+        /**
+         * 初始化所有滑块组件
+         */
+        function initToggleSwitches() {
+            // 问卷模板滑块
+            const surveyStatuses = [
+                { id: 'survey-status-1', enabled: true },
+                { id: 'survey-status-2', enabled: true },
+                { id: 'survey-status-3', enabled: false },
+                { id: 'survey-status-4', enabled: false },
+                { id: 'survey-status-5', enabled: true }
+            ];
+            
+            surveyStatuses.forEach(status => {
+                const switchInstance = new ToggleSwitch({
+                    containerId: status.id,
+                    checked: status.enabled,
+                    size: 'sm',
+                    onChange: function(enabled) {
+                        const templateId = status.id.split('-')[2];
+                        handleSurveyStatusChange(templateId, enabled, switchInstance);
+                    }
+                });
+                toggleSwitches[status.id] = switchInstance;
+            });
+        }
+        
+        /**
+         * 处理问卷模板状态变更
+         * @param {string} templateId - 模板ID
+         * @param {boolean} enabled - 是否启用
+         * @param {Object} switchInstance - 滑块实例
+         */
+        function handleSurveyStatusChange(templateId, enabled, switchInstance) {
+            console.log(`问卷模板 ${templateId} 状态变更为: ${enabled ? '启用' : '停用'}`);
+            
+            // 这里可以添加API调用来更新服务器状态
+            // 如果API调用失败，可以通过switchInstance.toggle()来恢复状态
+        }
+        
+        /**
+         * 创建新的问卷模板
+         */
+        function createNewSurveyTemplate() {
+            console.log('创建新的问卷模板');
+            // 跳转到问卷配置页面
+            window.location.href = 'survey-config.html';
+        }
+        
+        /**
+         * 编辑问卷模板
+         * @param {string} templateId - 模板ID
+         */
+        function editSurveyTemplate(templateId) {
+            console.log(`编辑问卷模板: ${templateId}`);
+            // 这里可以跳转到编辑页面
+            alert(`编辑问卷模板 ${templateId} 功能待开发`);
+        }
+        
+        /**
+         * 预览问卷模板
+         * @param {string} templateId - 模板ID
+         */
+        function previewSurveyTemplate(templateId) {
+            console.log(`预览问卷模板: ${templateId}`);
+            // 这里可以打开预览模态框
+            alert(`预览问卷模板 ${templateId} 功能待开发`);
+        }
+        
+        /**
+         * 删除问卷模板
+         * @param {string} templateId - 模板ID
+         */
+        function deleteSurveyTemplate(templateId) {
+            if (confirm('确定要删除这个问卷模板吗？')) {
+                console.log(`删除问卷模板: ${templateId}`);
+                // 这里可以调用API删除模板
+                alert(`删除问卷模板 ${templateId} 功能待开发`);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToggleSwitch 组件使用示例</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">ToggleSwitch 组件使用示例</h1>
+        
+        <!-- 基础用法 -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">基础用法</h2>
+            <div class="space-y-4">
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-700 w-20">默认状态:</span>
+                    <div id="toggle-basic"></div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-700 w-20">已启用:</span>
+                    <div id="toggle-enabled"></div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-700 w-20">已停用:</span>
+                    <div id="toggle-disabled"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 不同尺寸 -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">不同尺寸</h2>
+            <div class="space-y-4">
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-700 w-20">小尺寸:</span>
+                    <div id="toggle-small"></div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-700 w-20">中尺寸:</span>
+                    <div id="toggle-medium"></div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-700 w-20">大尺寸:</span>
+                    <div id="toggle-large"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 批量操作 -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">批量操作示例</h2>
+            <div class="space-y-4">
+                <div class="flex space-x-4 mb-4">
+                    <button onclick="enableAll()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        全部启用
+                    </button>
+                    <button onclick="disableAll()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        全部停用
+                    </button>
+                    <button onclick="getStatus()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        获取状态
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div class="mb-2">功能A</div>
+                        <div id="toggle-feature-a"></div>
+                    </div>
+                    <div class="text-center">
+                        <div class="mb-2">功能B</div>
+                        <div id="toggle-feature-b"></div>
+                    </div>
+                    <div class="text-center">
+                        <div class="mb-2">功能C</div>
+                        <div id="toggle-feature-c"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 代码示例 -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">代码示例</h2>
+            <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>// 1. 引入组件
+&lt;script src="components/toggle-switch.js"&gt;&lt;/script&gt;
+
+// 2. 创建单个开关
+const toggle = new ToggleSwitch({
+    containerId: 'toggle-container',
+    id: 'my-toggle',
+    checked: true,
+    onChange: function(checked, id) {
+        console.log(`开关 ${id} 状态: ${checked}`);
+    },
+    size: 'md' // 'sm', 'md', 'lg'
+});
+
+// 3. 批量创建开关
+const toggles = ToggleSwitch.createMultiple([
+    {
+        containerId: 'toggle-1',
+        id: 'feature-1',
+        checked: true,
+        onChange: handleToggle
+    },
+    {
+        containerId: 'toggle-2', 
+        id: 'feature-2',
+        checked: false,
+        onChange: handleToggle
+    }
+]);
+
+// 4. 操作方法
+toggle.setValue(true);  // 设置状态
+toggle.getValue();      // 获取状态
+toggle.enable();        // 启用组件
+toggle.disable();       // 停用组件
+toggle.destroy();       // 销毁组件</code></pre>
+        </div>
+    </div>
+    
+    <!-- 引入组件 -->
+    <script src="toggle-switch.js"></script>
+    
+    <script>
+        // 存储所有开关实例
+        let toggleInstances = {};
+        let batchToggles = [];
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 基础用法示例
+            toggleInstances.basic = new ToggleSwitch({
+                containerId: 'toggle-basic',
+                id: 'basic',
+                onChange: function(checked, id) {
+                    console.log(`基础开关状态: ${checked}`);
+                }
+            });
+            
+            toggleInstances.enabled = new ToggleSwitch({
+                containerId: 'toggle-enabled',
+                id: 'enabled',
+                checked: true,
+                onChange: function(checked, id) {
+                    console.log(`启用开关状态: ${checked}`);
+                }
+            });
+            
+            toggleInstances.disabled = new ToggleSwitch({
+                containerId: 'toggle-disabled',
+                id: 'disabled',
+                disabled: true,
+                onChange: function(checked, id) {
+                    console.log(`停用开关状态: ${checked}`);
+                }
+            });
+            
+            // 不同尺寸示例
+            new ToggleSwitch({
+                containerId: 'toggle-small',
+                id: 'small',
+                size: 'sm',
+                checked: true
+            });
+            
+            new ToggleSwitch({
+                containerId: 'toggle-medium',
+                id: 'medium',
+                size: 'md',
+                checked: true
+            });
+            
+            new ToggleSwitch({
+                containerId: 'toggle-large',
+                id: 'large',
+                size: 'lg',
+                checked: true
+            });
+            
+            // 批量操作示例
+            batchToggles = ToggleSwitch.createMultiple([
+                {
+                    containerId: 'toggle-feature-a',
+                    id: 'feature-a',
+                    checked: true,
+                    onChange: function(checked, id) {
+                        console.log(`功能A状态: ${checked}`);
+                    }
+                },
+                {
+                    containerId: 'toggle-feature-b',
+                    id: 'feature-b',
+                    checked: false,
+                    onChange: function(checked, id) {
+                        console.log(`功能B状态: ${checked}`);
+                    }
+                },
+                {
+                    containerId: 'toggle-feature-c',
+                    id: 'feature-c',
+                    checked: true,
+                    onChange: function(checked, id) {
+                        console.log(`功能C状态: ${checked}`);
+                    }
+                }
+            ]);
+        });
+        
+        // 批量操作函数
+        function enableAll() {
+            ToggleSwitch.setBatchValue(batchToggles, true);
+        }
+        
+        function disableAll() {
+            ToggleSwitch.setBatchValue(batchToggles, false);
+        }
+        
+        function getStatus() {
+            const status = batchToggles.map(toggle => ({
+                id: toggle.id,
+                checked: toggle.getValue()
+            }));
+            alert('当前状态:\n' + JSON.stringify(status, null, 2));
+        }
+    </script>
+</body>
+</html>

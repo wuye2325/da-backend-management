@@ -1,0 +1,752 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问卷配置 - 大家共治后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/top-navigation.js"></script>
+    <script src="js/tab-system.js"></script>
+    <script src="js/layout.js"></script>
+    <!-- 富文本编辑器和附件上传组件 -->
+    <script src="components/RichTextEditor.js"></script>
+    <script src="components/AttachmentUpload.js"></script>
+    <style>
+        .question-item {
+            transition: all 0.3s ease;
+        }
+        .question-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .drag-handle {
+            cursor: move;
+        }
+        .drag-handle:hover {
+            color: #4f46e5;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation Container -->
+            <div id="top-navigation-container"></div>
+
+            <!-- Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Header -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900">问卷配置</h1>
+                                <p class="text-gray-600 mt-1">设计和配置问卷调查模板</p>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button onclick="saveTemplate()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-save mr-2"></i>保存模板
+                                </button>
+                                <button onclick="previewTemplate()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-eye mr-2"></i>预览
+                                </button>
+                                <button onclick="goBack()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-arrow-left mr-2"></i>返回
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Info -->
+                    <div class="bg-white rounded-lg shadow mb-6">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">基本信息</h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">问卷标题</label>
+                                    <input type="text" id="surveyTitle" placeholder="请输入问卷标题" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">问卷描述</label>
+                                    <div id="surveyDescriptionEditor"></div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+
+                <!-- 附件上传 -->
+                <div class="bg-white rounded-lg shadow mb-6">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">相关附件</h3>
+                        <p class="text-sm text-gray-500 mt-1">上传与问卷相关的文件，如说明文档、图片等</p>
+                    </div>
+                    <div class="p-6">
+                        <div id="surveyAttachments"></div>
+                    </div>
+                </div>
+
+                <!-- Survey Questions -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-medium text-gray-900">问卷题目</h3>
+                                <div class="flex space-x-2">
+                                    <button onclick="addQuestion('single')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+                                        <i class="fas fa-dot-circle mr-1"></i>单选题
+                                    </button>
+                                    <button onclick="addQuestion('multiple')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+                                        <i class="fas fa-check-square mr-1"></i>多选题
+                                    </button>
+                                    <button onclick="addQuestion('text')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+                                        <i class="fas fa-edit mr-1"></i>填空题
+                                    </button>
+                                    <button onclick="addQuestion('rating')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+                                        <i class="fas fa-star mr-1"></i>评分题
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div id="questionsContainer" class="space-y-4">
+                                <!-- 题目将在这里动态生成 -->
+                            </div>
+                            <div id="emptyState" class="text-center py-12 text-gray-500">
+                                <i class="fas fa-question-circle text-4xl mb-4"></i>
+                                <p>暂无题目，点击上方按钮添加题目</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div id="previewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">问卷预览</h3>
+                <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div id="previewContent" class="space-y-6">
+                <!-- 预览内容将在这里动态生成 -->
+            </div>
+            
+            <div class="flex justify-end mt-6 pt-4 border-t">
+                <button onclick="closePreview()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg mr-3">
+                    关闭
+                </button>
+                <button onclick="saveTemplate()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                    保存模板
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let questionCounter = 0;
+        let questions = [];
+        let descriptionEditor = null;
+        let attachmentUpload = null;
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initPage('survey-template');
+            
+            // 初始化富文本编辑器
+            initRichTextEditor();
+            
+            // 初始化附件上传组件
+            initAttachmentUpload();
+            
+            // 检查页面模式
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const templateId = urlParams.get('id');
+            
+            if (mode === 'edit' && templateId) {
+                loadTemplateData(templateId);
+            } else if (mode === 'preview' && templateId) {
+                // 加载模板数据，完成后启用预览模式
+                loadTemplateData(templateId, () => {
+                    console.log('数据加载完成，启用预览模式');
+                    enablePreviewMode();
+                });
+            }
+            // 新建模式不需要加载数据
+        });
+
+        /**
+         * 加载模板数据（编辑和预览模式）
+         */
+        function loadTemplateData(templateId, callback) {
+            if (templateId) {
+                // 模拟加载现有模板数据
+                const templateData = getTemplateById(templateId);
+                if (templateData) {
+                    console.log('加载模板数据:', templateData);
+                    
+                    // 安全地设置表单值
+                    const surveyTitleEl = document.getElementById('surveyTitle');
+                    const surveyCategoryEl = document.getElementById('surveyCategory');
+                    const surveyDescriptionEl = document.getElementById('surveyDescription');
+                    
+                    if (surveyTitleEl) surveyTitleEl.value = templateData.title;
+                    if (surveyCategoryEl) surveyCategoryEl.value = templateData.category;
+                    
+                    // 设置富文本编辑器内容
+                    if (descriptionEditor && templateData.description) {
+                        descriptionEditor.setContent(templateData.description);
+                    }
+                    
+                    // 设置附件
+                    if (attachmentUpload && templateData.attachments) {
+                        attachmentUpload.setFiles(templateData.attachments);
+                    }
+                    
+                    console.log('表单元素检查:', {
+                        surveyTitle: !!surveyTitleEl,
+                        surveyCategory: !!surveyCategoryEl,
+                        surveyDescription: !!surveyDescriptionEl
+                    });
+                    
+                    // 清空现有题目
+                    questions = [];
+                    questionCounter = 0;
+                    const questionsContainerEl = document.getElementById('questionsContainer');
+                    if (questionsContainerEl) {
+                        questionsContainerEl.innerHTML = '';
+                    } else {
+                        console.warn('questionsContainer 元素未找到');
+                    }
+                    
+                    // 加载题目
+                    templateData.questions.forEach(questionData => {
+                        addQuestionFromData(questionData);
+                    });
+                    
+                    console.log('题目加载完成，共', questions.length, '个题目');
+                    
+                    // 如果有回调函数，延迟执行以确保DOM更新完成
+                    if (callback) {
+                        setTimeout(callback, 200);
+                    }
+                }
+            }
+        }
+
+        /**
+         * 根据ID获取模板数据（模拟）
+         */
+        function getTemplateById(id) {
+            const templates = {
+                '1': {
+                    title: '物业服务满意度调查',
+                    category: 'satisfaction',
+                    description: '<p>定期收集业主对物业服务的满意度评价，帮助我们不断改进服务质量。</p><p><strong>调查说明：</strong></p><ul><li>本调查采用匿名方式</li><li>请根据实际情况如实填写</li><li>您的意见对我们非常重要</li></ul>',
+                    attachments: [],
+                    questions: [
+                        { type: 'single', title: '您对物业服务的总体满意度如何？', options: ['非常满意', '满意', '一般', '不满意', '非常不满意'], required: true },
+                        { type: 'multiple', title: '您认为哪些方面需要改进？（可多选）', options: ['清洁卫生', '安全管理', '维修服务', '绿化养护', '客服态度'], required: false },
+                        { type: 'text', title: '请提出您的具体建议', required: false },
+                        { type: 'rating', title: '请为物业服务打分（1-5分）', maxRating: 5, required: true }
+                    ]
+                },
+                '2': {
+                    title: '小区改造意见征集',
+                    category: 'opinion',
+                    description: '<p>为了提升小区居住环境，我们计划进行小区改造。</p><p><strong>改造内容包括：</strong></p><ol><li>基础设施升级</li><li>环境美化</li><li>便民设施增设</li></ol><p>请您积极参与，提出宝贵意见！</p>',
+                    attachments: [],
+                    questions: [
+                        { type: 'single', title: '您是否支持小区改造项目？', options: ['非常支持', '支持', '中立', '不支持', '强烈反对'], required: true },
+                        { type: 'multiple', title: '您希望优先改造哪些区域？', options: ['儿童游乐区', '健身设施', '停车场', '绿化带', '道路'], required: true },
+                        { type: 'text', title: '您对改造方案有什么具体建议？', required: false }
+                    ]
+                }
+            };
+            return templates[id];
+        }
+
+        /**
+         * 添加题目
+         * @param {string} type - 题目类型
+         */
+        function addQuestion(type) {
+            questionCounter++;
+            const questionId = `question_${questionCounter}`;
+            
+            const questionData = {
+                id: questionId,
+                type: type,
+                title: '',
+                options: type === 'single' || type === 'multiple' ? ['选项1', '选项2'] : [],
+                required: false,
+                maxRating: type === 'rating' ? 5 : undefined
+            };
+            
+            questions.push(questionData);
+            renderQuestion(questionData);
+            updateEmptyState();
+        }
+
+        /**
+         * 从数据添加题目
+         * @param {Object} questionData - 题目数据
+         */
+        function addQuestionFromData(questionData) {
+            questionCounter++;
+            const questionId = `question_${questionCounter}`;
+            questionData.id = questionId;
+            
+            questions.push(questionData);
+            renderQuestion(questionData);
+            updateEmptyState();
+        }
+
+        /**
+         * 渲染题目
+         * @param {Object} questionData - 题目数据
+         */
+        function renderQuestion(questionData) {
+            const container = document.getElementById('questionsContainer');
+            if (!container) return;
+            
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-item bg-gray-50 border border-gray-200 rounded-lg p-4';
+            questionDiv.id = questionData.id;
+            
+            let optionsHtml = '';
+            let previewHtml = '';
+            
+            // 根据题目类型生成不同的HTML
+            switch (questionData.type) {
+                case 'single':
+                    optionsHtml = generateOptionsHtml(questionData, 'radio');
+                    previewHtml = generatePreviewOptions(questionData, 'radio');
+                    break;
+                case 'multiple':
+                    optionsHtml = generateOptionsHtml(questionData, 'checkbox');
+                    previewHtml = generatePreviewOptions(questionData, 'checkbox');
+                    break;
+                case 'text':
+                    previewHtml = '<textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="请输入您的答案"></textarea>';
+                    break;
+                case 'rating':
+                    previewHtml = generateRatingHtml(questionData.maxRating || 5);
+                    break;
+            }
+            
+            questionDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center">
+                        <i class="fas fa-grip-vertical drag-handle text-gray-400 mr-3"></i>
+                        <span class="text-sm font-medium text-gray-600">${getQuestionTypeLabel(questionData.type)}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" ${questionData.required ? 'checked' : ''} 
+                                   onchange="toggleRequired('${questionData.id}')" 
+                                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-600">必填</span>
+                        </label>
+                        <button onclick="deleteQuestion('${questionData.id}')" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <input type="text" value="${questionData.title}" 
+                           onchange="updateQuestionTitle('${questionData.id}', this.value)"
+                           placeholder="请输入题目标题" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                ${optionsHtml}
+                
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="text-sm font-medium text-gray-700 mb-2">预览效果：</div>
+                    <div class="bg-white p-3 rounded border">
+                        <div class="font-medium mb-2">${questionData.title || '题目标题'} ${questionData.required ? '<span class="text-red-500">*</span>' : ''}</div>
+                        ${previewHtml}
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(questionDiv);
+        }
+
+        /**
+         * 生成选项HTML（编辑模式）
+         */
+        function generateOptionsHtml(questionData, inputType) {
+            if (!questionData.options || questionData.options.length === 0) return '';
+            
+            let html = '<div class="space-y-2">';
+            questionData.options.forEach((option, index) => {
+                html += `
+                    <div class="flex items-center space-x-2">
+                        <input type="${inputType}" disabled class="rounded border-gray-300">
+                        <input type="text" value="${option}" 
+                               onchange="updateOption('${questionData.id}', ${index}, this.value)"
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button onclick="deleteOption('${questionData.id}', ${index})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            html += `
+                <button onclick="addOption('${questionData.id}')" class="text-blue-600 hover:text-blue-800 text-sm">
+                    <i class="fas fa-plus mr-1"></i>添加选项
+                </button>
+            </div>`;
+            
+            return html;
+        }
+
+        /**
+         * 生成预览选项HTML
+         */
+        function generatePreviewOptions(questionData, inputType) {
+            if (!questionData.options || questionData.options.length === 0) return '';
+            
+            let html = '<div class="space-y-2">';
+            questionData.options.forEach((option, index) => {
+                html += `
+                    <label class="flex items-center">
+                        <input type="${inputType}" name="preview_${questionData.id}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2">${option}</span>
+                    </label>
+                `;
+            });
+            html += '</div>';
+            
+            return html;
+        }
+
+        /**
+         * 生成评分HTML
+         */
+        function generateRatingHtml(maxRating) {
+            let html = '<div class="flex items-center space-x-1">';
+            for (let i = 1; i <= maxRating; i++) {
+                html += `<i class="fas fa-star text-gray-300 hover:text-yellow-400 cursor-pointer" onclick="setRating(this, ${i})"></i>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        /**
+         * 获取题目类型标签
+         */
+        function getQuestionTypeLabel(type) {
+            const labels = {
+                'single': '单选题',
+                'multiple': '多选题',
+                'text': '填空题',
+                'rating': '评分题'
+            };
+            return labels[type] || '未知类型';
+        }
+
+        /**
+         * 更新题目标题
+         */
+        function updateQuestionTitle(questionId, title) {
+            const question = questions.find(q => q.id === questionId);
+            if (question) {
+                question.title = title;
+                // 更新预览区域
+                const previewTitle = document.querySelector(`#${questionId} .bg-white .font-medium`);
+                if (previewTitle) {
+                    previewTitle.innerHTML = `${title || '题目标题'} ${question.required ? '<span class="text-red-500">*</span>' : ''}`;
+                }
+            }
+        }
+
+        /**
+         * 切换必填状态
+         */
+        function toggleRequired(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            if (question) {
+                question.required = !question.required;
+                // 更新预览区域
+                const previewTitle = document.querySelector(`#${questionId} .bg-white .font-medium`);
+                if (previewTitle) {
+                    previewTitle.innerHTML = `${question.title || '题目标题'} ${question.required ? '<span class="text-red-500">*</span>' : ''}`;
+                }
+            }
+        }
+
+        /**
+         * 添加选项
+         */
+        function addOption(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            if (question && question.options) {
+                question.options.push(`选项${question.options.length + 1}`);
+                // 重新渲染题目
+                const questionElement = document.getElementById(questionId);
+                if (questionElement) {
+                    questionElement.remove();
+                    renderQuestion(question);
+                }
+            }
+        }
+
+        /**
+         * 更新选项
+         */
+        function updateOption(questionId, optionIndex, value) {
+            const question = questions.find(q => q.id === questionId);
+            if (question && question.options && question.options[optionIndex] !== undefined) {
+                question.options[optionIndex] = value;
+                // 更新预览区域的选项
+                const previewOptions = document.querySelectorAll(`#${questionId} .bg-white label span`);
+                if (previewOptions[optionIndex]) {
+                    previewOptions[optionIndex].textContent = value;
+                }
+            }
+        }
+
+        /**
+         * 删除选项
+         */
+        function deleteOption(questionId, optionIndex) {
+            const question = questions.find(q => q.id === questionId);
+            if (question && question.options && question.options.length > 1) {
+                question.options.splice(optionIndex, 1);
+                // 重新渲染题目
+                const questionElement = document.getElementById(questionId);
+                if (questionElement) {
+                    questionElement.remove();
+                    renderQuestion(question);
+                }
+            }
+        }
+
+        /**
+         * 删除题目
+         */
+        function deleteQuestion(questionId) {
+            if (confirm('确定要删除这个题目吗？')) {
+                // 从数组中移除
+                questions = questions.filter(q => q.id !== questionId);
+                // 从DOM中移除
+                const questionElement = document.getElementById(questionId);
+                if (questionElement) {
+                    questionElement.remove();
+                }
+                updateEmptyState();
+            }
+        }
+
+        /**
+         * 更新空状态显示
+         */
+        function updateEmptyState() {
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                emptyState.style.display = questions.length === 0 ? 'block' : 'none';
+            }
+        }
+
+        /**
+         * 设置评分
+         */
+        function setRating(element, rating) {
+            const stars = element.parentElement.querySelectorAll('i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.className = 'fas fa-star text-yellow-400 cursor-pointer';
+                } else {
+                    star.className = 'fas fa-star text-gray-300 hover:text-yellow-400 cursor-pointer';
+                }
+            });
+        }
+
+        /**
+         * 初始化富文本编辑器
+         */
+        function initRichTextEditor() {
+            try {
+                descriptionEditor = new RichTextEditor('surveyDescriptionEditor', {
+                    placeholder: '请输入问卷描述，支持富文本格式...',
+                    height: '200px',
+                    enableAttachments: false // 描述区域不需要附件功能
+                });
+                console.log('富文本编辑器初始化成功');
+            } catch (error) {
+                console.error('富文本编辑器初始化失败:', error);
+                // 降级到普通文本框
+                const container = document.getElementById('surveyDescriptionEditor');
+                if (container) {
+                    container.innerHTML = '<textarea id="surveyDescription" rows="3" placeholder="请输入问卷描述" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>';
+                }
+            }
+        }
+
+        /**
+         * 初始化附件上传组件
+         */
+        function initAttachmentUpload() {
+            try {
+                attachmentUpload = new AttachmentUpload('surveyAttachments', {
+                    maxFileSize: 20 * 1024 * 1024, // 20MB
+                    maxFiles: 5,
+                    allowedTypes: [ '.pdf', '.doc', '.docx', '.xls', '.xlsx', '. '],
+                    onChange: (files) => {
+                        console.log('附件列表更新:', files);
+                    }
+                });
+                
+                // 将组件实例暴露到全局，方便HTML中的onclick调用
+                window[`attachmentUpload_surveyAttachments`] = attachmentUpload;
+                
+                console.log('附件上传组件初始化成功');
+            } catch (error) {
+                console.error('附件上传组件初始化失败:', error);
+            }
+        }
+
+        /**
+         * 预览模板
+         */
+        function previewTemplate() {
+            const title = document.getElementById('surveyTitle').value || '未命名问卷';
+            
+            let previewHtml = `
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">${title}</h2>
+                </div>
+            `;
+            
+            // 显示附件信息
+            if (attachmentUpload && attachmentUpload.getFiles().length > 0) {
+                const files = attachmentUpload.getFiles();
+                previewHtml += `
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">相关附件 (${files.length}个)</h4>
+                        <div class="space-y-1">
+                            ${files.map(file => `
+                                <div class="text-sm text-gray-600">
+                                    <i class="fas fa-paperclip mr-1"></i>${file.name}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (questions.length === 0) {
+                previewHtml += '<div class="text-center py-8 text-gray-500">暂无题目</div>';
+            } else {
+                questions.forEach((question, index) => {
+                    let questionHtml = `
+                        <div class="mb-6 p-4 border border-gray-200 rounded-lg">
+                            <div class="font-medium mb-3">${index + 1}. ${question.title || '题目标题'} ${question.required ? '<span class="text-red-500">*</span>' : ''}</div>
+                    `;
+                    
+                    switch (question.type) {
+                        case 'single':
+                        case 'multiple':
+                            questionHtml += generatePreviewOptions(question, question.type === 'single' ? 'radio' : 'checkbox');
+                            break;
+                        case 'text':
+                            questionHtml += '<textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="请输入您的答案"></textarea>';
+                            break;
+                        case 'rating':
+                            questionHtml += generateRatingHtml(question.maxRating || 5);
+                            break;
+                    }
+                    
+                    questionHtml += '</div>';
+                    previewHtml += questionHtml;
+                });
+            }
+            
+            document.getElementById('previewContent').innerHTML = previewHtml;
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        /**
+         * 关闭预览
+         */
+        function closePreview() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        /**
+         * 启用预览模式
+         */
+        function enablePreviewMode() {
+            // 停用所有编辑功能
+            const inputs = document.querySelectorAll('input, textarea, select, button');
+            inputs.forEach(input => {
+                if (!input.onclick || !input.onclick.toString().includes('closePreview')) {
+                    input.disabled = true;
+                }
+            });
+            
+            // 更改页面标题
+            document.title = '问卷预览 - 大家共治后台管理系统';
+            document.querySelector('h1').textContent = '问卷预览';
+            document.querySelector('h1').nextElementSibling.textContent = '预览问卷模板效果';
+            
+            console.log('预览模式已启用');
+        }
+
+        /**
+         * 保存模板
+         */
+        function saveTemplate() {
+            const title = document.getElementById('surveyTitle').value;
+            
+            // 获取附件
+            const attachments = attachmentUpload ? attachmentUpload.getFiles() : [];
+            
+            if (!title.trim()) {
+                alert('请输入问卷标题');
+                return;
+            }
+            
+            if (questions.length === 0) {
+                alert('请至少添加一个题目');
+                return;
+            }
+            
+            const templateData = {
+                title: title,
+                attachments: attachments,
+                questions: questions,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            console.log('保存模板数据:', templateData);
+            alert('模板保存成功！');
+        }
+
+        /**
+         * 返回列表页
+         */
+        function goBack() {
+            window.location.href = 'survey-template.html';
+        }
+    </script>
+</body>
+</html>

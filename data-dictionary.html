@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据字典管理 - 大家共治后台系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/top-navigation.js"></script>
+    <script src="js/tab-system.js"></script>
+    <script src="js/layout.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- 主容器 -->
+    <div id="app" class="flex h-screen">
+        <!-- 侧边栏容器 -->
+        <div id="sidebar-container"></div>
+        
+        <!-- 主内容区域 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航容器 -->
+            <div id="top-navigation-container"></div>
+            
+            <!-- 页面内容 -->
+                <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+                    <!-- 页面标题 -->
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-semibold text-gray-900">数据字典管理</h1>
+                    </div>
+
+                    <!-- 主要内容区域 - 左右分栏布局 -->
+                    <div class="flex gap-6 h-full">
+                        <!-- 左侧字典分类列表 -->
+                        <div class="w-1/3 bg-white rounded-lg shadow">
+                            <div class="p-4 border-b border-gray-200">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-900">字典分类</h3>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="relative">
+                                        <input type="text" id="searchCategory" placeholder="搜索分类" 
+                                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="overflow-y-auto" style="max-height: calc(100vh - 300px);">
+                                <ul id="categoryList" class="divide-y divide-gray-200">
+                                    <!-- 分类列表将通过JavaScript动态加载 -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 右侧词条列表 -->
+                        <div class="flex-1 bg-white rounded-lg shadow">
+                            <div class="p-4 border-b border-gray-200">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-900">词条列表</h3>
+                                        <p id="currentCategoryName" class="text-sm text-gray-500 mt-1">请选择左侧分类查看词条</p>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <div class="relative">
+                                            <input type="text" id="searchItem" placeholder="搜索词条" 
+                                                   class="w-64 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+                                        </div>
+                                        <button id="addItemBtn" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+                                            <i class="fas fa-plus mr-2"></i>新增词条
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 词条表格 -->
+                            <div class="overflow-x-auto">
+                                <table id="itemTable" class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">编码</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">排序</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr>
+                                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                                <div class="flex flex-col items-center">
+                                                    <i class="fas fa-list text-4xl text-gray-300 mb-2"></i>
+                                                    <p>请选择左侧分类查看词条</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- 分页组件 -->
+                            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                                <div class="flex-1 flex justify-between sm:hidden">
+                                    <button id="prevPageMobile" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        上一页
+                                    </button>
+                                    <button id="nextPageMobile" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        下一页
+                                    </button>
+                                </div>
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            共 <span id="totalRecords" class="font-medium">0</span> 条记录，
+                                            第 <span id="currentPageInfo" class="font-medium">1</span> 页，
+                                            共 <span id="totalPages" class="font-medium">1</span> 页
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="pagination">
+                                            <!-- 分页按钮将通过JavaScript动态生成 -->
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+        </div>
+    </div>
+
+    <!-- 新增/编辑分类模态框 -->
+    <div id="categoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="categoryModalTitle" class="text-lg font-medium text-gray-900">新增分类</h3>
+                    <button id="closeCategoryModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="categoryForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">分类名称 <span class="text-red-500">*</span></label>
+                        <input type="text" id="categoryName" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="请输入分类名称">
+                        <div id="categoryNameError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">分类编码 <span class="text-red-500">*</span></label>
+                        <input type="text" id="categoryCode" name="code" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="请输入分类编码">
+                        <div id="categoryCodeError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">排序</label>
+                        <input type="number" id="categorySort" name="sort" min="0"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="请输入排序值">
+                        <div id="categorySortError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">备注</label>
+                        <textarea id="categoryRemark" name="remark" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="请输入备注信息"></textarea>
+                    </div>
+                </form>
+                
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button id="cancelCategoryBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        取消
+                    </button>
+                    <button id="saveCategoryBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/编辑词条模态框 -->
+    <div id="itemModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="itemModalTitle" class="text-lg font-medium text-gray-900">新增词条</h3>
+                    <button id="closeItemModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="itemForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">词条名称 <span class="text-red-500">*</span></label>
+                        <input type="text" id="itemName" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="请输入词条名称">
+                        <div id="itemNameError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">状态 <span class="text-red-500">*</span></label>
+                        <select id="itemStatus" name="status" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">请选择状态</option>
+                            <option value="正常">正常</option>
+                            <option value="停用">停用</option>
+                        </select>
+                        <div id="itemStatusError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">备注</label>
+                        <textarea id="itemRemark" name="remark" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="请输入备注信息"></textarea>
+                    </div>
+                </form>
+                
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button id="cancelItemBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        取消
+                    </button>
+                    <button id="saveItemBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 词条编辑模态框 -->
+    <div id="itemModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-10 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 id="modalTitle" class="text-lg font-medium text-gray-900 text-center mb-4">新增词条</h3>
+                <form id="itemForm" class="space-y-4">
+                    <div>
+                        <label for="itemName" class="block text-sm font-medium text-gray-700 mb-1">名称</label>
+                        <input type="text" id="itemName" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入词条名称" required>
+                    </div>
+                    <div>
+                        <label for="itemStatus" class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                        <select id="itemStatus" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <option value="">请选择状态</option>
+                            <option value="正常">正常</option>
+                            <option value="停用">停用</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-center space-x-2 mt-6">
+                        <button type="button" id="cancelItemBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            取消
+                        </button>
+                        <button type="submit" id="saveItemBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            保存
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认模态框 -->
+    <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                    <i class="fas fa-exclamation-triangle text-red-600"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mt-4">确认删除</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        您确定要删除这个数据字典吗？此操作不可撤销。
+                    </p>
+                </div>
+                <div class="flex justify-center space-x-2 mt-4">
+                    <button id="cancelDeleteBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        取消
+                    </button>
+                    <button id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                        删除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知组件 -->
+    <div id="notification" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm">
+            <div class="flex items-center">
+                <div id="notificationIcon" class="flex-shrink-0">
+                    <!-- 图标将通过JavaScript动态设置 -->
+                </div>
+                <div class="ml-3">
+                    <p id="notificationMessage" class="text-sm font-medium text-gray-900"></p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <button id="closeNotification" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript文件 -->
+    <script src="js/layout.js"></script>
+    <script src="components/toggle-switch.js"></script>
+    <script src="js/data-dictionary.js"></script>
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化页面布局
+            initPage('data-dictionary');
+        });
+    </script>
+</body>
+</html>

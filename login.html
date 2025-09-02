@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大家共治后台管理系统 - 登录</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* 简洁的输入框焦点效果 */
+        .input-focus {
+            transition: all 0.2s ease;
+        }
+        
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* 按钮悬停效果 */
+        .btn-hover {
+            transition: all 0.2s ease;
+        }
+        
+        .btn-hover:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        
+        /* 页面淡入动画 */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md fade-in">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 mb-4">
+                <img src="Logomark-1.png" alt="大家共治Logo" class="w-16 h-16 object-contain">
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">大家共治</h1>
+            <p class="text-gray-600 text-lg">后台管理系统</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <!-- Login Tabs -->
+            <div id="loginTabs" class="mb-6"></div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-2 text-gray-400"></i>用户名
+                    </label>
+                    <input type="text" id="username" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="请输入用户名" value="13555555555">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2 text-gray-400"></i>密码
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="password" required
+                               class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="请输入密码" value="123456">
+                        <button type="button" onclick="togglePassword()" 
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+                        <input type="checkbox" class="mr-2 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <span>记住我</span>
+                    </label>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">忘记密码？</a>
+                </div>
+
+                <button type="submit" 
+                        class="btn-hover w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    <i class="fas fa-sign-in-alt mr-2"></i>立即登录
+                </button>
+            </form>
+
+            <!-- Security Notice -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <div class="flex items-center justify-center text-gray-500 text-sm">
+                    <i class="fas fa-shield-alt mr-2 text-green-500"></i>
+                    <span>安全登录 · 数据加密保护</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-6 text-gray-500 text-sm">
+            <p class="mb-1">&copy; 2025 大家共治后台管理系统</p>
+            <p class="text-xs">致力于社区治理现代化</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // 导入TabComponent
+        import { TabComponent } from './js/tab-component.js';
+        
+        // 初始化登录方式选择tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginTabs = new TabComponent('loginTabs', {
+                tabs: [
+                    {
+                        id: 'account',
+                        title: '账号登录',
+                        content: ''
+                    },
+                    {
+                        id: 'wechat',
+                        title: '微信扫码登录',
+                        content: `
+                            <div class="text-center py-8">
+                                <div class="w-48 h-48 mx-auto mb-4 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <i class="lni lni-wechat text-6xl text-green-500"></i>
+                                </div>
+                                <p class="text-gray-600 mb-2">请使用微信扫描二维码登录</p>
+                                <p class="text-sm text-gray-500">打开微信，扫一扫页面二维码</p>
+                            </div>
+                        `
+                    }
+                ],
+                defaultTab: 'account',
+                onTabChange: function(tabId) {
+                    const loginForm = document.getElementById('loginForm');
+                    if (tabId === 'account') {
+                        loginForm.style.display = 'block';
+                    } else {
+                        loginForm.style.display = 'none';
+                    }
+                }
+            });
+            
+            // 初始化TabComponent
+            loginTabs.init();
+        });
+        
+        /**
+         * 切换密码显示/隐藏
+         */
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.className = 'fas fa-eye';
+            }
+        }
+
+        /**
+         * 显示消息提示
+         * @param {string} message - 提示消息
+         * @param {string} type - 消息类型 (success, error, info)
+         */
+        function showMessage(message, type = 'info') {
+            // 移除已存在的消息
+            const existingMessage = document.querySelector('.message-toast');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-toast fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            messageDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${
+                        type === 'success' ? 'fa-check-circle' : 
+                        type === 'error' ? 'fa-exclamation-circle' : 
+                        'fa-info-circle'
+                    } mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(messageDiv);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.style.opacity = '0';
+                    messageDiv.style.transform = 'translate(-50%, -100%)';
+                    setTimeout(() => {
+                        messageDiv.remove();
+                    }, 300);
+                }
+            }, 3000);
+        }
+
+        // DOM加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 表单提交处理
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                
+                // 表单验证
+                if (!username) {
+                    showMessage('请输入用户名', 'error');
+                    document.getElementById('username').focus();
+                    return;
+                }
+                
+                if (!password) {
+                    showMessage('请输入密码', 'error');
+                    document.getElementById('password').focus();
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    showMessage('密码长度不能少于6位', 'error');
+                    document.getElementById('password').focus();
+                    return;
+                }
+                
+                // 显示加载状态
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>登录中..';
+                submitBtn.disabled = true;
+                
+                // 模拟登录请求
+                setTimeout(() => {
+                    // 简单的用户名密码验证（实际项目中应该调用后端API）
+                    if (username === '13555555555' && password === '123456') {
+                        showMessage('登录成功！正在跳转..', 'success');
+                        setTimeout(() => {
+                            window.location.href = 'home-dashboard.html';
+                        }, 1500);
+                    } else {
+                        showMessage('用户名或密码错误，请重试', 'error');
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                        document.getElementById('password').value = '';
+                        document.getElementById('password').focus();
+                    }
+                }, 1500);
+            });
+
+            // 键盘快捷键支持
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && (e.target.tagName === 'INPUT')) {
+                    const form = document.getElementById('loginForm');
+                    const inputs = form.querySelectorAll('input[required]');
+                    const currentIndex = Array.from(inputs).indexOf(e.target);
+                    
+                    if (currentIndex < inputs.length - 1) {
+                        // 跳转到下一个输入框
+                        inputs[currentIndex + 1].focus();
+                    } else {
+                        // 提交表单
+                        form.dispatchEvent(new Event('submit'));
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

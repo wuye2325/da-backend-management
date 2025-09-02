@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提示词管理 - 大家共治后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/tab-system.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation Container -->
+            <div id="top-navigation-container"></div>
+
+            <!-- Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6">
+                <!-- 页面标题 -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between">
+                        <h1 class="text-2xl font-bold text-gray-900">提示词管理</h1>
+                        <button onclick="openPromptModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <i class="fas fa-plus mr-2"></i>新增
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 标签页导航 -->
+                <div id="prompt-tabs-container" class="mb-6"></div>
+
+                <!-- 筛选和操作区域 -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <!-- 筛选区域 -->
+                    <div class="grid grid-cols-12 gap-4 items-end">
+                        <!-- 应用角色筛选 -->
+                        <div class="col-span-12 md:col-span-1">
+                            <label for="role-filter" class="block text-sm font-medium text-gray-700 mb-2">应用角色</label>
+                            <select id="role-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm h-10">
+                                <option value="">全部应用</option>
+                                <option value="所有人">所有人</option>
+                                <option value="业委会">业委会</option>
+                                <option value="业主">业主</option>
+                                <option value="物业">物业</option>
+                            </select>
+                        </div>
+                        <!-- AI润色分类筛选 -->
+                        <div id="category-filter-container" class="col-span-12 md:col-span-1 hidden">
+                            <label for="category-filter" class="block text-sm font-medium text-gray-700 mb-2">润色分类</label>
+                            <select id="category-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm h-10">
+                                <option value="">全部分类</option>
+                                <option value="公告通知">公告通知</option>
+                                <option value="函件往来">函件往来</option>
+                                <option value="会议纪要">会议纪要</option>
+                                <option value="友好通知">友好通知</option>
+                                <option value="建议反馈">建议反馈</option>
+                                <option value="邻里沟通">邻里沟通</option>
+                                <option value="维修报告">维修报告</option>
+                                <option value="法律条文">法律条文</option>
+                                <option value="语言润色">语言润色</option>
+                                <option value="逻辑整理">逻辑整理</option>
+                            </select>
+                        </div>
+                        <!-- 搜索组件 -->
+                        <div class="col-span-12 md:col-span-3">
+                            <div id="search-container" class="relative"></div>
+                        </div>
+                    </div>
+                        <!-- 操作按钮区域 -->
+                        <div id="action-buttons-container" class="flex gap-3"></div>
+                    </div>
+                </div>
+
+                <!-- 提示词列表表格 -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">提示词标题</th>
+                                    <th id="category-header" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden">分类</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">应用角色</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prompt-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- 表格内容将通过JavaScript动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                     <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                        <!-- 左侧：记录信息和分页条数选择器 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div class="text-sm text-gray-500">
+                                显示 <span class="font-medium">1-10</span> 条，共 <span class="font-medium">156</span> 条记录
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600">每页显示</label>
+                                <select class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="10" selected>10条</option>
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧：分页控件 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <!-- 页码按钮组 -->
+                            <div class="flex items-center space-x-1">
+                                <!-- 上一页 -->
+                                <button class="px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <i class="fas fa-chevron-left mr-1"></i>上一页
+                                </button>
+                                
+                                <!-- 页码按钮 -->
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded font-medium">1</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">4</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">5</button>
+                                <span class="px-2 py-1 text-sm text-gray-500">...</span>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">16</button>
+                                
+                                <!-- 下一页 -->
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                                    下一页<i class="fas fa-chevron-right ml-1"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- 页码跳转 -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600">跳转到</span>
+                                <input type="number" min="1" max="16" value="1" class="w-16 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <span class="text-sm text-gray-600">页</span>
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- 新增/编辑提示词模态框 -->
+    <div id="prompt-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900" id="modal-title">新增提示词</h3>
+                    <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closePromptModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="prompt-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">提示词名称 *</label>
+                        <input type="text" id="prompt-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">应用位置 *</label>
+                            <select id="prompt-location" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required onchange="toggleCategoryField()">
+                                <option value="">请选择应用位置</option>
+                                <option value="小区事务概览">小区事务概览</option>
+                                <option value="AI速览">AI速览</option>
+                                <option value="AI润色">AI润色</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">应用角色 *</label>
+                            <select id="prompt-role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="">请选择应用角色</option>
+                                 <option value="所有人">所有人</option>
+                                <option value="业委会">业委会</option>
+                                <option value="业主">业主</option>
+                                <option value="物业">物业</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- AI润色分类字段 -->
+                    <div id="ai-category-field" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">AI润色分类 *</label>
+                        <select id="ai-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">请选择润色分类</option>
+                            <option value="公告通知">公告通知</option>
+                            <option value="函件往来">函件往来</option>
+                            <option value="会议纪要">会议纪要</option>
+                            <option value="友好通知">友好通知</option>
+                            <option value="建议反馈">建议反馈</option>
+                            <option value="邻里沟通">邻里沟通</option>
+                            <option value="维修报告">维修报告</option>
+                            <option value="法律条文">法律条文</option>
+                            <option value="语言润色">语言润色</option>
+                            <option value="逻辑整理">逻辑整理</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">提示词内容 *</label>
+                        <textarea id="prompt-content" rows="8" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="请输入提示词内容..." required></textarea>
+                    </div>
+
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="prompt-active" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="prompt-active" class="ml-2 block text-sm text-gray-700">启用此提示词</label>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="closePromptModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            取消
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            保存
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- 删除确认模态框 -->
+    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">确认删除</h3>
+                <p class="text-sm text-gray-500 mb-4">您确定要删除提示词 "<span id="delete-prompt-name" class="font-medium"></span>" 吗？此操作不可撤销。</p>
+                <div class="flex justify-center space-x-3">
+                    <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        取消
+                    </button>
+                    <button type="button" onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        删除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 组件脚本 -->
+    <script src="components/toggle-switch.js"></script>
+    <script src="js/search-component.js"></script>
+    <script src="js/action-buttons.js"></script>
+    <script src="js/tab-component.js"></script>
+    <!-- 页面脚本 -->
+    <script src="js/ai-prompt-management.js"></script>
+    <script>
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 确保TabComponent已加载后再初始化
+            if (typeof window.TabComponent !== 'undefined') {
+                console.log('TabComponent已加载，开始初始化页面');
+                if (typeof initPage === 'function') {
+                    initPage('ai-prompt-management');
+                } else {
+                    console.error('initPage函数未定义，请检查layout.js是否正确加载');
+                }
+            } else {
+                console.error('TabComponent未找到，请确保tab-component.js已正确加载');
+                // 尝试延迟初始化
+                setTimeout(function() {
+                    if (typeof window.TabComponent !== 'undefined') {
+                        console.log('延迟加载成功，开始初始化页面');
+                        if (typeof initPage === 'function') {
+                            initPage('ai-prompt-management');
+                        }
+                    } else {
+                        console.error('延迟加载失败，TabComponent仍未找到');
+                    }
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

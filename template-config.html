@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流程模板配置 - 大家共治后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/top-navigation.js"></script>
+    <script src="js/tab-system.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/search-component.js"></script>
+    <script src="components/toggle-switch.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation Container -->
+            <div id="top-navigation-container"></div>
+
+            <!-- Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6">
+                <!-- Header -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">流程模板配置</h1>
+                        </div>
+                        <div>
+                            <button onclick="createNewProcessTemplate()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center">
+                                <i class="fas fa-plus mr-2"></i>新建模板
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+                <!-- Process Template Content -->
+                <div id="process-content" class="tab-content hidden">
+                    <!-- Search Component Card -->
+                    <div class="bg-white rounded-lg shadow mb-6 p-6">
+                        <div class="grid grid-cols-12 gap-4 items-end">
+                            <!-- 状态筛选 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">状态</label>
+                                <select id="templateStatusFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">全部状态</option>
+                                    <option value="enabled">启用</option>
+                                    <option value="disabled">停用</option>
+                                </select>
+                            </div>
+                            <!-- 搜索组件容器 -->
+                            <div id="template-search-container" class="col-span-12 md:col-span-3"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Process Templates Table -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">模板名称</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">步骤数</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">更新时间</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后操作人</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- 公告审批 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">公告审批</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">3</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-10</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">王主管</div>
+                                            <div class="text-sm text-gray-500">13700137003</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div id="process-status-3"></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button onclick="editProcessTemplate('3')" class="text-blue-600 hover:text-bg-blue-100 -900 mr-3">编辑</button>
+                                            <button onclick="previewProcessTemplate('3')" class="text-gray-600 hover:text-gray-900 mr-3">预览</button>
+                                            <button class="text-gray-400 cursor-not-allowed mr-3" disabled>删除</button>
+                                        </td>
+                                    </tr>
+                                    <!-- 通知审批 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">通知审批</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-08</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">陈经理</div>
+                                            <div class="text-sm text-gray-500">13600136004</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div id="process-status-4"></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button onclick="editProcessTemplate('4')" class="text-blue-600 hover:text-bg-blue-100 -900 mr-3">编辑</button>
+                                            <button onclick="previewProcessTemplate('4')" class="text-gray-600 hover:text-gray-900 mr-3">预览</button>
+                                            <button class="text-gray-400 cursor-not-allowed mr-3" disabled>删除</button>
+                                        </td>
+                                    </tr>
+                                    <!-- 支出申请 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">支出申请</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">4</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-15</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">张管理员</div>
+                                            <div class="text-sm text-gray-500">13800138001</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div id="process-status-1"></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button onclick="editProcessTemplate('1')" class="text-blue-600 hover:text-bg-blue-100 -900 mr-3">编辑</button>
+                                            <button onclick="previewProcessTemplate('1')" class="text-gray-600 hover:text-gray-900 mr-3">预览</button>
+                                            <button onclick="deleteProcessTemplate('1')" class="text-red-600 hover:text-red-900">删除</button>
+                                        </td>
+                                    </tr>
+                                    <!-- 用印申请 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">用印申请</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">4</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-12</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">李主任</div>
+                                            <div class="text-sm text-gray-500">13900139002</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div id="process-status-2"></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button onclick="editProcessTemplate('2')" class="text-blue-600 hover:text-bg-blue-100 -900 mr-3">编辑</button>
+                                            <button onclick="previewProcessTemplate('2')" class="text-gray-600 hover:text-gray-900 mr-3">预览</button>
+                                            <button onclick="deleteProcessTemplate('2')" class="text-red-600 hover:text-red-900">删除</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                         <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                        <!-- 左侧：记录信息和分页条数选择器 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div class="text-sm text-gray-500">
+                                显示 <span class="font-medium">1-10</span> 条，共 <span class="font-medium">156</span> 条记录
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600">每页显示</label>
+                                <select class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="10" selected>10条</option>
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧：分页控件 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <!-- 页码按钮组 -->
+                            <div class="flex items-center space-x-1">
+                                <!-- 上一页 -->
+                                <button class="px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <i class="fas fa-chevron-left mr-1"></i>上一页
+                                </button>
+                                
+                                <!-- 页码按钮 -->
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded font-medium">1</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">4</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">5</button>
+                                <span class="px-2 py-1 text-sm text-gray-500">...</span>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">16</button>
+                                
+                                <!-- 下一页 -->
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                                    下一页<i class="fas fa-chevron-right ml-1"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- 页码跳转 -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600">跳转到</span>
+                                <input type="number" min="1" max="16" value="1" class="w-16 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <span class="text-sm text-gray-600">页</span>
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initPage('template-config');
+            
+            // 初始化滑块组件
+            initToggleSwitches();
+            
+            // 初始化搜索组件
+            initTemplateSearchComponent();
+            
+            // 默认显示流程模板标签页
+            document.getElementById('process-content').classList.remove('hidden');
+        });
+        
+        // 存储滑块实例
+        const toggleSwitches = {};
+        
+        // 模板搜索组件初始化函数
+        function initTemplateSearchComponent() {
+            try {
+                // 初始化模板搜索组件
+                window.templateSearchComponent = new SearchComponent({
+                    containerId: 'template-search-container',
+                    placeholder: '搜索模板名称、描述...',
+                    label: '搜索',
+                    onSearch: (searchValue) => {
+                        console.log('模板搜索:', searchValue);
+                        // 这里可以调用模板搜索功能
+                        if (window.searchTemplates) {
+                            window.searchTemplates(searchValue);
+                        }
+                    },
+                    onReset: () => {
+                        console.log('重置模板搜索');
+                        // 这里可以调用模板搜索重置功能
+                        if (window.resetTemplateSearch) {
+                            window.resetTemplateSearch();
+                        }
+                    }
+                });
+                console.log('模板搜索组件初始化完成');
+            } catch (error) {
+                console.error('模板搜索组件加载失败:', error);
+            }
+        }
+        
+        // 初始化所有滑块组件
+        function initToggleSwitches() {
+            // 流程模板滑块
+            const processStatuses = [
+                { id: 'process-status-1', enabled: true },
+                { id: 'process-status-2', enabled: false },
+                { id: 'process-status-3', enabled: true },
+                { id: 'process-status-4', enabled: false }
+            ];
+            
+            processStatuses.forEach(status => {
+                const switchInstance = new ToggleSwitch({
+                    containerId: status.id,
+                    checked: status.enabled,
+                    size: 'sm',
+                    onChange: function(enabled) {
+                        const templateId = status.id.split('-')[2];
+                        handleProcessStatusChange(templateId, enabled, switchInstance);
+                    }
+                });
+                toggleSwitches[status.id] = switchInstance;
+            });
+        }
+        
+        // 处理流程模板状态变更
+        function handleProcessStatusChange(templateId, enabled, switchInstance) {
+            const action = enabled ? '启用' : '停用';
+            if (confirm(`确定要${action}该流程模板吗？`)) {
+                // 这里可以添加实际的API调用
+                console.log(`流程模板 ${templateId} 已${action}`);
+                
+                // 模拟延迟操作
+                setTimeout(() => {
+                    alert(`流程模板已成功${action}！`);
+                }, 500);
+            } else {
+                // 如果用户取消，恢复原状态
+                if (switchInstance) {
+                    switchInstance.setValue(!enabled, false);
+                }
+            }
+        }
+
+        // 流程模板相关函数
+        function createNewProcessTemplate() {
+            window.location.href = 'process-config.html?mode=create';
+        }
+
+        function editProcessTemplate(templateId) {
+            window.location.href = `process-config.html?mode=edit&id=${templateId}`;
+        }
+
+        function previewProcessTemplate(templateId) {
+            window.location.href = `process-config.html?mode=preview&id=${templateId}&source=template-config`;
+        }
+
+        function toggleProcessTemplateStatus(templateId, currentStatus) {
+            const newStatus = currentStatus === 'enabled' ? 'disabled' : 'enabled';
+            const action = newStatus === 'enabled' ? '启用' : '停用';
+            
+            if (confirm(`确定要${action}此流程模板吗？`)) {
+                console.log(`${action}流程模板 ${templateId}`);
+                
+                setTimeout(() => {
+                    const button = event.target;
+                    if (newStatus === 'enabled') {
+                        button.textContent = '停用';
+                        button.className = 'text-orange-600 hover:text-orange-900 mr-3';
+                        button.onclick = () => toggleProcessTemplateStatus(templateId, 'enabled');
+                    } else {
+                        button.textContent = '启用';
+                        button.className = 'text-green-600 hover:text-green-900 mr-3';
+                        button.onclick = () => toggleProcessTemplateStatus(templateId, 'disabled');
+                    }
+                    
+                    const row = button.closest('tr');
+                    const statusCell = row.querySelector('td:nth-child(3)');
+                    if (statusCell) {
+                        const statusSpan = statusCell.querySelector('span');
+                        if (statusSpan) {
+                            if (newStatus === 'enabled') {
+                                statusSpan.textContent = '启用';
+                                statusSpan.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800';
+                            } else {
+                                statusSpan.textContent = '停用';
+                                statusSpan.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800';
+                            }
+                        }
+                    }
+                    
+                    alert(`流程模板已成功${action}`);
+                }, 500);
+            }
+        }
+
+        function deleteProcessTemplate(templateId) {
+            if (confirm('确定要删除此流程模板吗？此操作不可恢复。')) {
+                console.log(`删除流程模板 ${templateId}`);
+                
+                setTimeout(() => {
+                    const button = event.target;
+                    const row = button.closest('tr');
+                    row.remove();
+                    alert('流程模板已成功删除');
+                }, 500);
+            }
+        }
+    </script>
+
+    <style>
+        .tab-button.active {
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+        
+        .tab-content {
+            /* 移除动画，直接显示 */
+            opacity: 1;
+        }
+    </style>
+</body>
+</html>

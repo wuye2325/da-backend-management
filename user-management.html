@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户账号管理 - 大家共治后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/tab-system.js"></script>
+    <script src="js/tab-component.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/action-buttons.js"></script>
+    <script src="js/search-component.js"></script>
+    <script src="js/user-management-data.js"></script>
+    <script src="components/toggle-switch.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- 侧边栏容器 -->
+        <div id="sidebar-container"></div>
+
+        <!-- 主内容区域 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航栏容器 -->
+            <div id="top-navigation-container"></div>
+
+            <!-- Page Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6">
+                <!-- 页面标题 -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-2">用户账号管理</h1>
+                        </div>
+                        <!-- ActionButtons组件容器 -->
+                        <div id="account-action-buttons"></div>
+                    </div>
+                </div>
+
+                <!-- Tab容器 -->
+                <div id="user-management-tabs"></div>
+
+                <!-- 隐藏的模板内容，用于tab组件 -->
+                <div style="display: none;">
+                    <!-- 中台用户内容模板 -->
+                    <div id="branch-content" style="display: none;">
+                        <!-- 搜索和筛选区域 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <!-- 筛选区域：所有控件在同一行 -->
+                        <div class="grid grid-cols-12 gap-2 mb-4">
+                            <!-- 角色筛选 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">角色</label>
+                                <div class="h-10">
+                                    <select id="branchRoleFilter" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="">全部</option>
+                                        <option value="branch_admin">中台管理员</option>
+                                        <option value="branch_operator">中台运营专员</option>
+                                        <option value="branch_auditor">中台审核专员</option>
+                                        <option value="branch_customer_service">中台客服专员</option>
+                                        <option value="branch_system_admin">中台系统管理员</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- 状态筛选 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">状态</label>
+                                <div class="h-10">
+                                    <select id="branchStatusFilter" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="">全部</option>
+                                        <option value="active">启用</option>
+                                        <option value="inactive">停用</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- 创建时间开始 -->
+                             <div class="col-span-12 md:col-span-1">
+                                 <label class="block text-sm font-medium text-gray-700 mb-2">创建时间</label>
+                                 <div class="h-10">
+                                     <input type="date" id="branchCreateTimeStart" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                 </div>
+                             </div>
+                             
+                             <!-- 创建时间结束 -->
+                            <div class="col-span-12 md:col-span-1">
+                                 <label class="block text-sm font-medium text-gray-700 mb-2">-</label>
+                                 <div class="h-10">
+                                     <input type="date" id="branchCreateTimeEnd" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                 </div>
+                             </div>
+                             
+                             <!-- 更新时间开始 -->
+                            <div class="col-span-12 md:col-span-1">
+                                 <label class="block text-sm font-medium text-gray-700 mb-2">更新时间</label>
+                                 <div class="h-10">
+                                     <input type="date" id="branchUpdateTimeStart" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                 </div>
+                             </div>
+                             
+                             <!-- 更新时间结束 -->
+                            <div class="col-span-12 md:col-span-1">
+                                 <label class="block text-sm font-medium text-gray-700 mb-2">-</label>
+                                 <div class="h-10">
+                                     <input type="date" id="branchUpdateTimeEnd" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                 </div>
+                             </div>
+                             
+                             <!-- 最后登录开始 -->
+                            <div class="col-span-12 md:col-span-1">
+                                 <label class="block text-sm font-medium text-gray-700 mb-2">登录时间</label>
+                                 <div class="h-10">
+                                     <input type="date" id="branchLastLoginStart" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                 </div>
+                             </div>
+                             
+                             <!-- 最后登录结束 -->
+                            <div class="col-span-12 md:col-span-1">
+                                 <label class="block text-sm font-medium text-gray-700 mb-2">-</label>
+                                 <div class="h-10">
+                                     <input type="date" id="branchLastLoginEnd" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                 </div>
+                             </div>
+                            
+                            <!-- 姓名搜索 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">姓名</label>
+                                <div class="h-10">
+                                    <input type="text" id="branchNameSearch" placeholder="姓名" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 身份证号码搜索 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">身份证</label>
+                                <div class="h-10">
+                                    <input type="text" id="branchIdCardSearch" placeholder="身份证" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 手机号搜索 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">手机号</label>
+                                <div class="h-10">
+                                    <input type="text" id="branchPhoneSearch" placeholder="手机号" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 操作按钮组 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                                <div class="h-10 flex gap-1">
+                                    <button onclick="searchBranchUsers()" class="w-10 h-10 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                    <button onclick="resetBranchUserFilters()" class="w-10 h-10 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center text-sm">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 中台用户列表 -->
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <!-- 批量操作按钮 -->
+                        <div class="px-6 py-3 border-b border-gray-200 bg-gray-50" style="display: none;" id="branchBatchActionsContainer">
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="batchDeleteBranch()" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2" id="branchBatchDeleteBtn">
+                                    批量删除
+                                </button>
+                                <button onclick="resetBranchPassword()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" id="branchResetPasswordBtn">
+                                    初始化密码
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <input type="checkbox" class="rounded border-gray-300" id="branchSelectAll" onchange="toggleBranchSelectAll()">
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">头像</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户信息</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">手机号</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户角色</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">更新时间</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后操作人</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后登录</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- 中台用户数据将在这里显示 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td colspan="11" class="px-6 py-8 text-center text-gray-500">
+                                            暂无中台用户数据
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-500">
+                                    显示 0-0 条，共 0 条记录
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50">上一页</button>
+                                    <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded">1</button>
+                                    <button class="px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50">下一页</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                    <!-- 总台用户内容模板 -->
+                    <div id="headquarters-content">
+                        <!-- 搜索和筛选区域 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <!-- 筛选区域：所有控件在同一行 -->
+                        <div class="grid grid-cols-12 gap-2 mb-4">
+                            <!-- 角色筛选 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">角色</label>
+                                <div class="h-10">
+                                    <select id="roleFilter" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="">全部</option>
+                                        <option value="admin">总台管理员</option>
+                                        <option value="operator">总台运营专员</option>
+                                        <option value="auditor">总台审核专员</option>
+                                        <option value="customer_service">总台客服专员</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- 状态筛选 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">状态</label>
+                                <div class="h-10">
+                                    <select id="statusFilter" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="">全部</option>
+                                        <option value="active">启用</option>
+                                        <option value="inactive">停用</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- 创建时间开始 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">创建时间</label>
+                                <div class="h-10">
+                                    <input type="date" id="createTimeStart" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 创建时间结束 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">-</label>
+                                <div class="h-10">
+                                    <input type="date" id="createTimeEnd" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 更新时间开始 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">更新时间</label>
+                                <div class="h-10">
+                                    <input type="date" id="updateTimeStart" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 更新时间结束 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">-</label>
+                                <div class="h-10">
+                                    <input type="date" id="updateTimeEnd" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 最后登录开始 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">登录时间</label>
+                                <div class="h-10">
+                                    <input type="date" id="lastLoginStart" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 最后登录结束 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">-</label>
+                                <div class="h-10">
+                                    <input type="date" id="lastLoginEnd" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 姓名搜索 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">姓名</label>
+                                <div class="h-10">
+                                    <input type="text" id="nameSearch" placeholder="姓名" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 身份证号码搜索 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">身份证</label>
+                                <div class="h-10">
+                                    <input type="text" id="idCardSearch" placeholder="身份证" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 手机号搜索 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">手机号</label>
+                                <div class="h-10">
+                                    <input type="text" id="phoneSearch" placeholder="手机号" class="w-full h-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <!-- 操作按钮组 -->
+                            <div class="col-span-12 md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                                <div class="h-10 flex gap-1">
+                                    <button onclick="searchUsers()" class="w-10 h-10 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                    <button onclick="resetUserFilters()" class="w-10 h-10 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center text-sm">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 用户列表 -->
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+
+                        <!-- 额外的批量操作按钮 -->
+                        <div class="px-6 py-3 border-b border-gray-200 bg-gray-50" style="display: none;" id="hqBatchActionsContainer">
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="batchDelete()" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2" id="hqBatchDeleteBtn">
+                                    批量删除
+                                </button>
+                                <button onclick="resetPassword()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" id="hqResetPasswordBtn">
+                                    初始化密码
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <input type="checkbox" class="rounded border-gray-300" id="hqSelectAll" onchange="toggleSelectAll()">
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">头像</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户信息</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">手机号</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户角色</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">更新时间</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后操作人</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后登录</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- 总台管理员 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="checkbox" class="rounded border-gray-300 row-checkbox" onchange="toggleBatchActions()">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=李晓红&background=dc2626&color=ffffff" alt="李晓红">
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">李晓红</div>
+                                            <div class="text-sm text-gray-500">320108199007071234</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">188****8888</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">总台管理员</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div id="hq-status-toggle-1" class="opacity-50 pointer-events-none"></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-01 08:00
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-20 10:30
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-400">----</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-20 15:30
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex items-center space-x-2">
+                                                <button class="text-gray-400 cursor-not-allowed opacity-50" disabled>
+                                                    编辑
+                                                </button>
+                                                <button class="text-gray-400 cursor-not-allowed opacity-50" disabled>
+                                                    初始化密码
+                                                </button>
+                                                <button class="text-gray-400 cursor-not-allowed opacity-50" disabled>
+                                                    删除
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- 总台运营专员 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="checkbox" class="rounded border-gray-300 row-checkbox" onchange="toggleBatchActions()">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=王小明&background=2563eb&color=ffffff" alt="王小明">
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">王小明</div>
+                                            <div class="text-sm text-gray-500">320108199205151234</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">139****6666</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">总台运营专员</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div id="hq-status-toggle-2"></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-15 09:30
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-22 14:20
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">李晓红</div>
+                                            <div class="text-sm text-gray-500">188****8888</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-22 16:45
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex items-center space-x-2">
+                                                <button onclick="openEditHqModal(2)" class="text-blue-600 hover:text-blue-900">
+                                                    编辑
+                                                </button>
+                                                <button onclick="openResetHqPasswordModal(2)" class="text-orange-600 hover:text-orange-900">
+                                                    初始化密码
+                                                </button>
+                                                <button onclick="deleteUser(2)" class="text-red-600 hover:text-red-900">
+                                                    删除
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- 总台客服主管 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="checkbox" class="rounded border-gray-300 row-checkbox" onchange="toggleBatchActions()">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=张丽华&background=059669&color=ffffff" alt="张丽华">
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">张丽华</div>
+                                            <div class="text-sm text-gray-500">320108198803201234</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">156****7777</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">总台客服主管</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div id="hq-status-toggle-3"></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-10 10:15
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-21 11:40
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">李晓红</div>
+                                            <div class="text-sm text-gray-500">188****8888</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-21 17:20
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex items-center space-x-2">
+                                                <button onclick="openEditHqModal(3)" class="text-blue-600 hover:text-blue-900">
+                                                    编辑
+                                                </button>
+                                                <button onclick="openResetHqPasswordModal(3)" class="text-orange-600 hover:text-orange-900">
+                                                    初始化密码
+                                                </button>
+                                                <button onclick="deleteUser(3)" class="text-red-600 hover:text-red-900">
+                                                    删除
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- 总台数据分析师 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="checkbox" class="rounded border-gray-300 row-checkbox" onchange="toggleBatchActions()">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=陈志强&background=7c3aed&color=ffffff" alt="陈志强">
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">陈志强</div>
+                                            <div class="text-sm text-gray-500">320108199011121234</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">177****9999</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded-full">总台数据分析师</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div id="hq-status-toggle-4"></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-08 14:20
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-18 16:30
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">李晓红</div>
+                                            <div class="text-sm text-gray-500">188****8888</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-18 09:15
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex items-center space-x-2">
+                                                <button onclick="openEditHqModal(4)" class="text-blue-600 hover:text-blue-900">
+                                                    编辑
+                                                </button>
+                                                <button onclick="openResetHqPasswordModal(4)" class="text-orange-600 hover:text-orange-900">
+                                                    初始化密码
+                                                </button>
+                                                <button onclick="deleteUser(4)" class="text-red-600 hover:text-red-900">
+                                                    删除
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- 总台系统管理员 -->
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="checkbox" class="rounded border-gray-300 row-checkbox" onchange="toggleBatchActions()">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=刘建军&background=ea580c&color=ffffff" alt="刘建军">
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">刘建军</div>
+                                            <div class="text-sm text-gray-500">320108198509081234</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">158****5555</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded-full">总台系统管理员</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div id="hq-status-toggle-5"></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-05 11:00
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-23 13:15
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">李晓红</div>
+                                            <div class="text-sm text-gray-500">188****8888</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            2024-01-23 18:30
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex items-center space-x-2">
+                                                <button class="text-blue-600 hover:text-blue-900">
+                                                    编辑
+                                                </button>
+                                                <button class="text-orange-600 hover:text-orange-900">
+                                                    初始化密码
+                                                </button>
+                                                <button class="text-red-600 hover:text-red-900">
+                                                    删除
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                         <!-- 分页控件 -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-500">
+                            显示 1-5 条，共 5 条记录
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50">上一页</button>
+                            <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded">1</button>
+                            <button class="px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50">下一页</button>
+                        </div>
+                    </div>
+                </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">新增用户</h3>
+                        <button onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600">
+                            ×
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <form id="addUserForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">头像</label>
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                                        <span class="text-gray-400 text-xl">头像</span>
+                                    </div>
+                                    <button type="button" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                                        上传头像
+                                    </button>
+                                </div>
+                            </div>
+                            <div></div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">姓名 <span class="text-red-500">*</span></label>
+                                <input type="text" id="userName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入姓名" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">手机号 <span class="text-red-500">*</span></label>
+                                <input type="tel" id="userPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入手机号" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">用户角色 <span class="text-red-500">*</span></label>
+                                <select id="userRole" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <!-- 选项将通过JavaScript动态生成 -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">身份证号</label>
+                                <input type="text" id="userIdCard" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入身份证号">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">所属部门</label>
+                                <select id="userDepartment" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <!-- 选项将通过JavaScript动态生成 -->
+                                </select>
+                            </div>
+                            <div id="communityContainer" style="display: none;">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">所属小区 <span class="text-red-500">*</span></label>
+                                <select id="userCommunity" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <!-- 选项将通过JavaScript动态生成 -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">是否为部门长</label>
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center">
+                                        <input type="radio" name="isDepartmentHead" value="true" class="mr-2 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">是</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="isDepartmentHead" value="false" class="mr-2 text-blue-600 focus:ring-blue-500" checked>
+                                        <span class="text-sm text-gray-700">否</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                    <button onclick="closeAddModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button onclick="saveUser()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">编辑用户</h3>
+                        <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                            ×
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <form id="editUserForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">头像</label>
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                                        <img id="editUserAvatar" src="" alt="用户头像" class="w-16 h-16 rounded-full object-cover hidden">
+                                        <span id="editDefaultAvatar" class="text-gray-400 text-xl">头像</span>
+                                    </div>
+                                    <button type="button" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                                        更换头像
+                                    </button>
+                                </div>
+                            </div>
+                            <div></div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">姓名 <span class="text-red-500">*</span></label>
+                                <input type="text" id="editUserName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入姓名" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">手机号 <span class="text-red-500">*</span></label>
+                                <input type="tel" id="editUserPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入手机号" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">用户角色 <span class="text-red-500">*</span></label>
+                                <select id="editUserRole" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <!-- 选项将通过JavaScript动态生成 -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">身份证号</label>
+                                <input type="text" id="editUserIdCard" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入身份证号">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">所属部门</label>
+                                <select id="editUserDepartment" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <!-- 选项将通过JavaScript动态生成 -->
+                                </select>
+                            </div>
+                            <div id="editCommunityContainer" style="display: none;">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">所属小区 <span class="text-red-500">*</span></label>
+                                <select id="editUserCommunity" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <!-- 选项将通过JavaScript动态生成 -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">是否为部门长</label>
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center">
+                                        <input type="radio" name="editIsDepartmentHead" value="true" class="mr-2 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">是</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="editIsDepartmentHead" value="false" class="mr-2 text-blue-600 focus:ring-blue-500" checked>
+                                        <span class="text-sm text-gray-700">否</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                    <button onclick="closeEditModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button onclick="updateUser()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        更新
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Reset Password Confirmation Modal -->
+    <div id="resetPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
+                <div class="p-6 text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-key text-yellow-500 text-3xl mb-3"></i>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">初始化密码</h3>
+                        <p class="text-gray-600">确认初始化密码吗？(123456)</p>
+                    </div>
+                    <div class="flex justify-center space-x-3">
+                        <button onclick="closeResetPasswordModal()" class="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            取消
+                        </button>
+                        <button onclick="confirmResetPassword()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            确定
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 总台用户编辑模态框 -->
+    <div id="editHqModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="w-full max-w-2xl p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">编辑总台用户</h3>
+                        <button onclick="closeEditHqModal()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="editHqUserForm" class="space-y-6">
+                        <!-- 头像显示 -->
+                         <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">头像</label>
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                                        <img id="editUserAvatar" src="" alt="用户头像" class="w-16 h-16 rounded-full object-cover hidden">
+                                        <span id="editDefaultAvatar" class="text-gray-400 text-xl">头像</span>
+                                    </div>
+                                    <button type="button" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                                        更换头像
+                                    </button>
+                                </div>
+                            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- 姓名 -->
+                            <div>
+                                <label for="editHqUserName" class="block text-sm font-medium text-gray-700 mb-2">姓名 *</label>
+                                <input type="text" id="editHqUserName" name="editHqUserName" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- 手机号 -->
+                            <div>
+                                <label for="editHqUserPhone" class="block text-sm font-medium text-gray-700 mb-2">手机号 *</label>
+                                <input type="tel" id="editHqUserPhone" name="editHqUserPhone" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- 身份证号 -->
+                            <div>
+                                <label for="editHqUserIdCard" class="block text-sm font-medium text-gray-700 mb-2">身份证号</label>
+                                <input type="text" id="editHqUserIdCard" name="editHqUserIdCard" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- 用户角色 -->
+                            <div>
+                                <label for="editHqUserRole" class="block text-sm font-medium text-gray-700 mb-2">用户角色 *</label>
+                                <select id="editHqUserRole" name="editHqUserRole" required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">请选择角色</option>
+                                    <option value="总台管理员">总台管理员</option>
+                                    <option value="总台运营专员">总台运营专员</option>
+                                    <option value="总台客服主管">总台客服主管</option>
+                                    <option value="总台数据分析师">总台数据分析师</option>
+                                    <option value="总台系统管理员">总台系统管理员</option>
+                                </select>
+                            </div>
+
+                            <!-- 所属部门 -->
+                            <div>
+                                <label for="editHqUserDepartment" class="block text-sm font-medium text-gray-700 mb-2">所属部门 *</label>
+                                <select id="editHqUserDepartment" name="editHqUserDepartment" required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">请选择部门</option>
+                                    <option value="运营部">运营部</option>
+                                    <option value="技术部">技术部</option>
+                                    <option value="客服部">客服部</option>
+                                    <option value="财务部">财务部</option>
+                                    <option value="人事部">人事部</option>
+                                </select>
+                            </div>
+
+                            <!-- 是否为部门长 -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">是否为部门长 *</label>
+                                <div class="flex space-x-4">
+                                    <label class="flex items-center">
+                                        <input type="radio" name="editHqIsDepartmentHead" value="true" 
+                                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                        <span class="ml-2 text-sm text-gray-700">是</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="editHqIsDepartmentHead" value="false" 
+                                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                        <span class="ml-2 text-sm text-gray-700">否</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                    <button onclick="closeEditHqModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button onclick="updateHqUser()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        更新
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 总台用户初始化密码模态框 -->
+    <div id="resetHqPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="w-full max-w-sm p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
+                <div class="p-6 text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-key text-yellow-500 text-3xl mb-3"></i>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">初始化密码</h3>
+                        <p class="text-gray-600">确认初始化该总台用户的密码吗？(123456)</p>
+                    </div>
+                    <div class="flex justify-center space-x-3">
+                        <button onclick="closeResetHqPasswordModal()" class="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            取消
+                        </button>
+                        <button onclick="confirmResetHqPassword()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            确定
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 全选/取消全选功能
+         */
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+            
+            toggleBatchActions();
+        }
+
+        /**
+         * 切换批量操作按钮显示状态
+         */
+        function toggleBatchActions() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const batchActionsContainer = document.getElementById('batchActionsContainer');
+            
+            if (checkboxes.length > 0) {
+                batchActionsContainer.style.display = 'block';
+            } else {
+                batchActionsContainer.style.display = 'none';
+            }
+        }
+
+
+
+        /**
+         * 新增用户 - 打开新增用户模态框
+         */
+        function addUser() {
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        /**
+         * 关闭新增用户模态框
+         */
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+            resetAddForm();
+        }
+
+        /**
+         * 打开编辑用户模态框
+         * @param {number} userId - 用户ID
+         */
+        function openEditModal(userId) {
+            // 模拟获取用户数据
+            const userData = getUserData(userId);
+            if (userData) {
+                populateEditForm(userData);
+                document.getElementById('editModal').classList.remove('hidden');
+            }
+        }
+
+        /**
+         * 关闭编辑用户模态框
+         */
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            resetEditForm();
+        }
+
+        /**
+         * 保存新用户
+         */
+        function saveUser() {
+            const form = document.getElementById('addUserForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // 获取是否为部门长的值
+            const isDepartmentHeadRadio = document.querySelector('input[name="isDepartmentHead"]:checked');
+            
+            const userData = {
+                platform: 'headquarters', // 固定为总台用户
+                name: document.getElementById('userName').value.trim(),
+                phone: document.getElementById('userPhone').value.trim(),
+                idCard: document.getElementById('userIdCard').value.trim(),
+                department: document.getElementById('userDepartment').value,
+                isDepartmentHead: isDepartmentHeadRadio ? isDepartmentHeadRadio.value === 'true' : false,
+                role: document.getElementById('userRole').value
+            };
+
+            // 表单验证
+            if (!userData.name || !userData.phone || !userData.role) {
+                alert('请填写必填字段');
+                return;
+            }
+
+            console.log('保存用户数据:', userData);
+            alert('用户创建成功！');
+            closeAddModal();
+            // 这里应该调用API保存数据并刷新列表
+        }
+
+        /**
+         * 更新用户信息
+         */
+        function updateUser() {
+            const form = document.getElementById('editUserForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // 获取是否为部门长的值
+            const isDepartmentHeadRadio = document.querySelector('input[name="editIsDepartmentHead"]:checked');
+            
+            const userData = {
+                name: document.getElementById('editUserName').value.trim(),
+                phone: document.getElementById('editUserPhone').value.trim(),
+                idCard: document.getElementById('editUserIdCard').value.trim(),
+                department: document.getElementById('editUserDepartment').value,
+                isDepartmentHead: isDepartmentHeadRadio ? isDepartmentHeadRadio.value === 'true' : false,
+                role: document.getElementById('editUserRole').value
+            };
+
+            // 如果所属小区字段可见（中台用户），添加所属小区信息
+            const communityContainer = document.getElementById('editCommunityContainer');
+            if (communityContainer.style.display !== 'none') {
+                userData.community = document.getElementById('editUserCommunity').value;
+                // 中台用户必须选择所属小区
+                if (!userData.community) {
+                    alert('中台用户必须选择所属小区');
+                    return;
+                }
+            }
+
+            console.log('更新用户数据:', userData);
+            alert('用户信息更新成功！');
+            closeEditModal();
+            // 这里应该调用API更新数据并刷新列表
+        }
+
+        /**
+         * 重置新增用户表单
+         */
+        function resetAddForm() {
+            document.getElementById('addUserForm').reset();
+            // 重置部门长单选按钮为默认值（否）
+            const departmentHeadNo = document.querySelector('input[name="isDepartmentHead"][value="false"]');
+            if (departmentHeadNo) {
+                departmentHeadNo.checked = true;
+            }
+            // 重置所属小区容器的显示状态
+            const communityContainer = document.getElementById('communityContainer');
+            const communitySelect = document.getElementById('userCommunity');
+            communityContainer.style.display = 'none';
+            communitySelect.removeAttribute('required');
+        }
+
+        /**
+         * 重置编辑用户表单
+         */
+        function resetEditForm() {
+            document.getElementById('editUserForm').reset();
+            // 隐藏头像，显示默认图标
+            document.getElementById('editUserAvatar').classList.add('hidden');
+            document.getElementById('editDefaultAvatar').classList.remove('hidden');
+        }
+
+        /**
+         * 获取用户数据（模拟）
+         * @param {number} userId - 用户ID
+         * @returns {Object|null} 用户数据
+         */
+        function getUserData(userId) {
+            // 模拟用户数据
+            const users = {
+                1: { name: '张三', phone: '13812345678', idCard: '320102199001011234', role: '业主', platform: 'middle', department: '物业管理部', community: '阳光花园', isDepartmentHead: false },
+                2: { name: '李大强', phone: '13912341234', idCard: '320103199002025678', role: '游客', platform: 'middle', department: '客服部', community: '绿城小区', isDepartmentHead: true },
+                3: { name: '王小明', phone: '13712345678', idCard: '320104199003036789', role: '业委会成员', platform: 'middle', department: '维修部', community: '阳光花园', isDepartmentHead: false },
+                4: { name: '赵丽华', phone: '13612345678', idCard: '320105199004047890', role: '业主', platform: 'headquarters', department: '运营部', isDepartmentHead: false },
+                5: { name: '刘建国', phone: '13512345678', idCard: '320106199005058901', role: '游客', platform: 'headquarters', department: '技术部', isDepartmentHead: true },
+                6: { name: '陈美丽', phone: '13412345678', idCard: '320107199006069012', role: '物业人员', platform: 'middle', department: '保洁部', community: '绿城小区', isDepartmentHead: false }
+            };
+            return users[userId] || null;
+        }
+
+        /**
+         * 填充编辑表单数据
+         * @param {Object} userData - 用户数据
+         */
+        function populateEditForm(userData) {
+            document.getElementById('editUserName').value = userData.name || '';
+            document.getElementById('editUserPhone').value = userData.phone || '';
+            document.getElementById('editUserIdCard').value = userData.idCard || '';
+            document.getElementById('editUserRole').value = userData.role || '';
+            
+            // 设置所属部门
+            const departmentSelect = document.getElementById('editUserDepartment');
+            if (departmentSelect) {
+                departmentSelect.value = userData.department || '';
+            }
+            
+            // 根据用户平台类型显示或隐藏所属小区字段
+            const communityContainer = document.getElementById('editCommunityContainer');
+            const communitySelect = document.getElementById('editUserCommunity');
+            
+            if (userData.platform === 'middle') {
+                // 中台用户显示所属小区字段
+                communityContainer.style.display = 'block';
+                communitySelect.setAttribute('required', 'required');
+                communitySelect.value = userData.community || '';
+            } else {
+                // 总台用户隐藏所属小区字段
+                communityContainer.style.display = 'none';
+                communitySelect.removeAttribute('required');
+                communitySelect.value = '';
+            }
+            
+            // 设置是否为部门长
+            const isDepartmentHead = userData.isDepartmentHead || false;
+            const departmentHeadRadios = document.querySelectorAll('input[name="editIsDepartmentHead"]');
+            departmentHeadRadios.forEach(radio => {
+                radio.checked = radio.value === isDepartmentHead.toString();
+            });
+        }
+
+        /**
+         * 批量导入用户
+         */
+        function batchImport() {
+            alert('批量导入用户功能');
+        }
+
+        /**
+         * 下载模板
+         */
+        function downloadTemplate() {
+            alert('下载模板功能');
+        }
+
+        /**
+         * 导出数据
+         */
+        function exportData() {
+            alert('数据导出功能');
+        }
+
+        /**
+         * 批量删除用户
+         */
+        function batchDelete() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('请选择要删除的用户');
+                return;
+            }
+            
+            if (confirm(`确定要删除选中的 ${checkboxes.length} 个用户吗？`)) {
+                alert('批量删除功能');
+            }
+        }
+
+        /**
+         * 批量重置密码
+         */
+        function resetPassword() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('请选择要重置密码的用户');
+                return;
+            }
+            
+            if (confirm(`确定要重置选中的 ${checkboxes.length} 个用户的密码吗？`)) {
+                alert('批量重置密码功能');
+            }
+        }
+
+        /**
+         * 编辑用户
+         * @param {number} userId - 用户ID
+         */
+        function editUser(userId) {
+            openEditModal(userId);
+        }
+
+        /**
+         * 重置单个用户密码
+         * @param {number} userId - 用户ID
+         */
+        function resetUserPassword(userId) {
+            openResetPasswordModal(userId);
+        }
+
+        /**
+         * 打开重置密码确认框
+         * @param {number} userId - 用户ID
+         */
+        function openResetPasswordModal(userId) {
+            // 存储当前用户ID
+            document.getElementById('resetPasswordModal').setAttribute('data-user-id', userId);
+            
+            // 显示模态框
+            document.getElementById('resetPasswordModal').classList.remove('hidden');
+        }
+
+        /**
+         * 关闭重置密码确认框
+         */
+        function closeResetPasswordModal() {
+            document.getElementById('resetPasswordModal').classList.add('hidden');
+        }
+
+
+
+        /**
+         * 确认重置密码
+         */
+        function confirmResetPassword() {
+            const userId = document.getElementById('resetPasswordModal').getAttribute('data-user-id');
+            const newPassword = '123456';
+            
+            // 执行重置密码操作
+            // 这里应该调用后端API进行密码重置
+            console.log('重置密码参数:', {
+                userId: userId,
+                newPassword: newPassword
+            });
+            
+            alert('用户密码已重置为：123456');
+            closeResetPasswordModal();
+            
+            // 这里可以刷新用户列表或更新UI
+        }
+
+
+
+        /**
+         * 切换用户状态（启用/停用）
+         * @param {number} userId - 用户ID
+         * @param {string} currentStatus - 当前状态 ('active', 'inactive')
+         */
+        function toggleUserStatus(userId, currentStatus) {
+            const action = currentStatus === 'active' ? '停用' : '激活';
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            
+            if (confirm(`确定要${action}该用户吗？`)) {
+                alert(`${action}用户 ${userId}，状态变更为：${newStatus}`);
+                // 这里可以添加实际的状态切换逻辑
+                // 例如：更新按钮文本和样式
+            }
+        }
+
+        /**
+         * 激活用户
+         * @param {number} userId - 用户ID
+         */
+        function activateUser(userId) {
+            if (confirm('确定要激活该用户吗？')) {
+                alert(`激活用户 ${userId}`);
+            }
+        }
+
+        /**
+         * 删除用户
+         * @param {number} userId - 用户ID
+         */
+        function deleteUser(userId) {
+            if (confirm('确定要删除该用户吗？此操作不可恢复！')) {
+                alert(`删除用户 ${userId}`);
+            }
+        }
+
+        /**
+         * 执行用户搜索
+         * @param {string} searchValue - 搜索关键词
+         */
+        function performUserSearch(searchValue) {
+            // 这里实现实际的搜索逻辑
+            // 可以根据搜索关键词过滤用户列表
+            console.log('执行用户搜索，关键词:', searchValue);
+            
+            // 示例：简单的前端搜索逻辑
+            if (searchValue.trim() === '') {
+                // 如果搜索为空，显示所有用户
+                showAllUsers();
+            } else {
+                // 根据关键词过滤用户
+                filterUsersByKeyword(searchValue);
+            }
+        }
+
+        /**
+         * 显示所有用户
+         */
+        function showAllUsers() {
+            const userRows = document.querySelectorAll('tbody tr');
+            userRows.forEach(row => {
+                row.style.display = '';
+            });
+        }
+
+        /**
+         * 根据关键词过滤用户
+         * @param {string} keyword - 搜索关键词
+         */
+        function filterUsersByKeyword(keyword) {
+            const userRows = document.querySelectorAll('tbody tr');
+            const searchKeyword = keyword.toLowerCase();
+            
+            userRows.forEach(row => {
+                const nameCell = row.querySelector('td:nth-child(3)');
+                const phoneCell = row.querySelector('td:nth-child(4)');
+                
+                if (nameCell && phoneCell) {
+                    const name = nameCell.textContent.toLowerCase();
+                    const phone = phoneCell.textContent.toLowerCase();
+                    
+                    // 检查姓名或手机号是否包含搜索关键词
+                    if (name.includes(searchKeyword) || phone.includes(searchKeyword)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        /**
+         * 初始化选项数据
+         * 动态生成筛选器和表单中的选项
+         */
+        function initializeSelectOptions() {
+            // 初始化筛选器中的小区名称选项
+            const communityFilter = document.getElementById('communityFilter');
+            if (communityFilter) {
+                const communityOptions = userManagementData.getCommunitiesForFilter();
+                communityFilter.innerHTML = '';
+                communityOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    optionElement.disabled = option.disabled;
+                    communityFilter.appendChild(optionElement);
+                });
+            }
+
+            // 初始化筛选器中的账号状态选项（中台用户）
+            const statusFilter = document.getElementById('statusFilter');
+            if (statusFilter) {
+                const statusOptions = userManagementData.getAccountStatusForFilter();
+                statusFilter.innerHTML = '';
+                statusOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    optionElement.disabled = option.disabled;
+                    statusFilter.appendChild(optionElement);
+                });
+            }
+
+            // 初始化筛选器中的账号状态选项（总台用户）
+            const hqStatusFilter = document.getElementById('hqStatusFilter');
+            if (hqStatusFilter) {
+                const statusOptions = userManagementData.getAccountStatusForFilter();
+                hqStatusFilter.innerHTML = '';
+                statusOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    optionElement.disabled = option.disabled;
+                    hqStatusFilter.appendChild(optionElement);
+                });
+            }
+
+            // 初始化表单中的用户角色选项
+            const userRole = document.getElementById('userRole');
+            if (userRole) {
+                const roleOptions = userManagementData.getUserRolesForForm();
+                userRole.innerHTML = '<option value="">请选择角色</option>';
+                roleOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    optionElement.disabled = option.disabled;
+                    userRole.appendChild(optionElement);
+                });
+            }
+
+            // 初始化表单中的部门选项
+            const userDepartment = document.getElementById('userDepartment');
+            if (userDepartment) {
+                const departmentOptions = userManagementData.getDepartments();
+                userDepartment.innerHTML = '';
+                departmentOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    optionElement.disabled = option.disabled;
+                    userDepartment.appendChild(optionElement);
+                });
+            }
+
+            // 初始化表单中的小区选项
+            const userCommunity = document.getElementById('userCommunity');
+            if (userCommunity) {
+                const communityOptions = userManagementData.getCommunitiesForForm();
+                userCommunity.innerHTML = '<option value="">请选择小区</option>';
+                communityOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    optionElement.disabled = option.disabled;
+                    userCommunity.appendChild(optionElement);
+                });
+            }
+
+            // 初始化编辑表单中的用户角色选项
+            const editUserRole = document.getElementById('editUserRole');
+            if (editUserRole) {
+                const roleOptions = userManagementData.getUserRolesForForm();
+                editUserRole.innerHTML = '<option value="">请选择角色</option>';
+                roleOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    optionElement.disabled = option.disabled;
+                    editUserRole.appendChild(optionElement);
+                });
+            }
+
+            // 初始化编辑表单中的账号状态选项
+            const editAccountStatus = document.getElementById('editAccountStatus');
+            if (editAccountStatus) {
+                const statusOptions = userManagementData.getAccountStatusForForm();
+                editAccountStatus.innerHTML = '<option value="">请选择状态</option>';
+                statusOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    optionElement.disabled = option.disabled;
+                    editAccountStatus.appendChild(optionElement);
+                });
+            }
+
+            // 初始化编辑表单中的小区选项
+            const editUserCommunity = document.getElementById('editUserCommunity');
+            if (editUserCommunity) {
+                const communityOptions = userManagementData.getCommunitiesForForm();
+                editUserCommunity.innerHTML = '<option value="">请选择小区</option>';
+                communityOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    optionElement.disabled = option.disabled;
+                    editUserCommunity.appendChild(optionElement);
+                });
+            }
+        }
+
+        /**
+         * 初始化用户状态toggle开关
+         * 为每个用户创建状态切换开关
+         */
+        function initializeUserStatusToggles() {
+            // 中台用户状态数据映射
+            const userStatusData = [
+                { id: 1, status: 'active' },    // 张三 - 正常
+                { id: 2, status: 'active' },    // 李大强 - 正常
+                { id: 3, status: 'inactive' },  // 王小明 - 待激活
+                { id: 4, status: 'inactive' },  // 陈晓华 - 停用
+                { id: 5, status: 'active' },    // 刘建国 - 正常
+                { id: 6, status: 'active' }     // 赵敏 - 正常
+            ];
+
+            // 总台用户状态数据映射
+            const hqUserStatusData = [
+                { id: 1, status: 'active', disabled: true },      // 总台管理员 - 启用但置灰
+                { id: 2, status: 'active', disabled: false },     // 总台运营专员 - 正常
+                { id: 3, status: 'active', disabled: false },     // 总台客服主管 - 正常
+                { id: 4, status: 'inactive', disabled: false },   // 总台数据分析师 - 停用
+                { id: 5, status: 'active', disabled: false }      // 总台系统管理员 - 正常
+            ];
+
+            // 为中台用户创建toggle开关
+            userStatusData.forEach(user => {
+                const containerId = `status-toggle-${user.id}`;
+                const container = document.getElementById(containerId);
+                
+                if (container) {
+                    // 创建toggle开关实例
+                    const toggle = new ToggleSwitch({
+                        containerId: containerId,
+                        id: `user-status-${user.id}`,
+                        checked: user.status === 'active', // 初始状态
+                        onChange: function(isEnabled) {
+                            // 状态变化回调函数
+                            handleUserStatusChange(user.id, isEnabled);
+                        },
+                        size: 'sm' // 使用小尺寸
+                    });
+                }
+            });
+
+            // 为总台用户创建toggle开关
+            hqUserStatusData.forEach(user => {
+                const containerId = `hq-status-toggle-${user.id}`;
+                const container = document.getElementById(containerId);
+                
+                if (container) {
+                    // 创建toggle开关实例
+                    const toggle = new ToggleSwitch({
+                        containerId: containerId,
+                        id: `hq-user-status-${user.id}`,
+                        checked: user.status === 'active', // 初始状态
+                        disabled: user.disabled || false, // 禁用状态
+                        onChange: function(isEnabled) {
+                            // 状态变化回调函数（总台用户禁用时不会触发）
+                            if (!user.disabled) {
+                                handleUserStatusChange(user.id, isEnabled, 'hq');
+                            }
+                        },
+                        size: 'sm' // 使用小尺寸
+                    });
+                }
+            });
+        }
+
+        /**
+         * 处理用户状态变化
+         * @param {number} userId - 用户ID
+         * @param {boolean} isEnabled - 是否启用
+         * @param {string} userType - 用户类型 ('middle' 或 'hq')
+         */
+        function handleUserStatusChange(userId, isEnabled, userType = 'middle') {
+            const status = isEnabled ? 'active' : 'inactive';
+            const statusText = isEnabled ? '启用' : '停用';
+            const typeText = userType === 'hq' ? '总台用户' : '中台用户';
+            
+            console.log(`${typeText} ${userId} 状态变更为: ${statusText}`);
+            
+            // 这里可以添加实际的API调用逻辑
+            // 例如: updateUserStatus(userId, status, userType);
+            
+            // 显示状态变更提示
+            // 可以使用toast通知或其他UI反馈
+        }
+
+        // ========== 总台用户相关函数 ==========
+        
+        /**
+         * 打开总台用户编辑模态框
+         * @param {number} userId - 用户ID
+         */
+        function openEditHqModal(userId) {
+            const userData = getHqUserData(userId);
+            if (userData) {
+                populateEditHqForm(userData);
+                const modal = document.getElementById('editHqModal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            }
+        }
+
+        /**
+         * 关闭总台用户编辑模态框
+         */
+        function closeEditHqModal() {
+            const modal = document.getElementById('editHqModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                resetEditHqForm();
+            }
+        }
+
+        /**
+         * 打开总台用户初始化密码模态框
+         * @param {number} userId - 用户ID
+         */
+        function openResetHqPasswordModal(userId) {
+            const modal = document.getElementById('resetHqPasswordModal');
+            if (modal) {
+                // 设置当前操作的用户ID
+                modal.setAttribute('data-user-id', userId);
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        /**
+         * 关闭总台用户初始化密码模态框
+         */
+        function closeResetHqPasswordModal() {
+            const modal = document.getElementById('resetHqPasswordModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                modal.removeAttribute('data-user-id');
+            }
+        }
+
+        /**
+         * 确认重置总台用户密码
+         */
+        function confirmResetHqPassword() {
+            const modal = document.getElementById('resetHqPasswordModal');
+            const userId = modal ? modal.getAttribute('data-user-id') : null;
+            
+            if (userId) {
+                console.log(`重置总台用户 ${userId} 的密码`);
+                // 这里可以添加实际的API调用逻辑
+                // 例如: resetHqUserPassword(userId);
+                
+                // 显示成功提示
+                alert('用户密码已重置为：123456');
+                
+                closeResetHqPasswordModal();
+            }
+        }
+
+        /**
+         * 获取总台用户数据（模拟数据）
+         * @param {number} userId - 用户ID
+         * @returns {Object|null} 用户数据对象
+         */
+        function getHqUserData(userId) {
+            const hqUsers = {
+                1: {
+                    id: 1,
+                    name: '总台管理员',
+                    phone: '13800000001',
+                    idCard: '110101199001011001',
+                    role: 'hq_admin',
+                    department: 'management',
+                    isDepartmentHead: true,
+                    status: 'active'
+                },
+                2: {
+                    id: 2,
+                    name: '总台运营专员',
+                    phone: '13800000002',
+                    idCard: '110101199002022002',
+                    role: 'hq_operation',
+                    department: 'operation',
+                    isDepartmentHead: false,
+                    status: 'active'
+                },
+                3: {
+                    id: 3,
+                    name: '总台客服主管',
+                    phone: '13800000003',
+                    idCard: '110101199003033003',
+                    role: 'hq_service',
+                    department: 'service',
+                    isDepartmentHead: true,
+                    status: 'active'
+                },
+                4: {
+                    id: 4,
+                    name: '总台数据分析师',
+                    phone: '13800000004',
+                    idCard: '110101199004044004',
+                    role: 'hq_analyst',
+                    department: 'data',
+                    isDepartmentHead: false,
+                    status: 'inactive'
+                }
+            };
+            
+            return hqUsers[userId] || null;
+        }
+
+        /**
+         * 填充总台用户编辑表单
+         * @param {Object} userData - 用户数据
+         */
+        function populateEditHqForm(userData) {
+            document.getElementById('editHqUserName').value = userData.name || '';
+            document.getElementById('editHqUserPhone').value = userData.phone || '';
+            document.getElementById('editHqUserIdCard').value = userData.idCard || '';
+            document.getElementById('editHqUserRole').value = userData.role || '';
+            document.getElementById('editHqUserDepartment').value = userData.department || '';
+            
+            // 设置是否为部门长的单选按钮
+            const isDeptHeadRadios = document.querySelectorAll('input[name="editHqIsDepartmentHead"]');
+            isDeptHeadRadios.forEach(radio => {
+                radio.checked = radio.value === (userData.isDepartmentHead ? 'true' : 'false');
+            });
+        }
+
+        /**
+         * 重置总台用户编辑表单
+         */
+        function resetEditHqForm() {
+            document.getElementById('editHqUserName').value = '';
+            document.getElementById('editHqUserPhone').value = '';
+            document.getElementById('editHqUserIdCard').value = '';
+            document.getElementById('editHqUserRole').value = '';
+            document.getElementById('editHqUserDepartment').value = '';
+            
+            // 重置是否为部门长的单选按钮
+            const isDeptHeadRadios = document.querySelectorAll('input[name="editHqIsDepartmentHead"]');
+            isDeptHeadRadios.forEach(radio => {
+                radio.checked = false;
+            });
+        }
+
+        /**
+         * 更新总台用户信息
+         */
+        function updateHqUser() {
+            const formData = {
+                name: document.getElementById('editHqUserName').value,
+                phone: document.getElementById('editHqUserPhone').value,
+                idCard: document.getElementById('editHqUserIdCard').value,
+                role: document.getElementById('editHqUserRole').value,
+                department: document.getElementById('editHqUserDepartment').value,
+                isDepartmentHead: document.querySelector('input[name="editHqIsDepartmentHead"]:checked')?.value === 'true'
+            };
+
+            // 基本验证
+            if (!formData.name || !formData.phone || !formData.role || !formData.department) {
+                alert('请填写所有必填字段');
+                return;
+            }
+
+            console.log('更新总台用户信息:', formData);
+            // 这里可以添加实际的API调用逻辑
+            // 例如: updateHqUserAPI(formData);
+
+            alert('总台用户信息更新成功！');
+            closeEditHqModal();
+        }
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initPage('user-account');
+            
+            // 等待DOM完全加载后直接显示内容
+            setTimeout(function() {
+                // 获取模板内容
+                const headquartersElement = document.getElementById('headquarters-content');
+                const tabContainer = document.getElementById('user-management-tabs');
+                
+                if (!headquartersElement || !tabContainer) {
+                    console.error('模板元素未找到');
+                    return;
+                }
+                
+                // 直接将内容插入到容器中，不显示tab导航
+                tabContainer.innerHTML = headquartersElement.innerHTML;
+                
+                // 隐藏原始模板内容
+                headquartersElement.style.display = 'none';
+                
+                // 初始化当前页面的组件
+                initializeCurrentTabComponents('headquarters-platform');
+            }, 100);
+        });
+        
+        /**
+         * 初始化当前tab页的组件
+         * @param {string} tabId - 当前激活的tab页ID
+         */
+        function initializeCurrentTabComponents(tabId) {
+            // 初始化ActionButtons组件
+            const actionButtons = new ActionButtons({
+                containerId: 'account-action-buttons',
+                callbacks: {
+                    onAdd: addUser,
+                    onImport: batchImport,
+                    onDownload: downloadTemplate,
+                    onExport: exportData
+                },
+                buttonTexts: {
+                    add: '新增',
+                    import: '导入',
+                    download: '下载模板',
+                    export: '导出'
+                }
+            });
+            actionButtons.init();
+            
+            // 初始化SearchComponent组件
+            const searchComponent = new SearchComponent({
+                containerId: 'hq-user-search-component',
+                placeholder: '输入姓名、手机号或身份证号',
+                label: '搜索',
+                onSearch: function(searchValue) {
+                    console.log('搜索:', searchValue);
+                    // 这里可以添加实际的搜索逻辑
+                    performUserSearch(searchValue);
+                }
+            });
+            searchComponent.init();
+            
+            // 初始化选项数据
+            initializeSelectOptions();
+            
+            // 初始化用户状态toggle开关
+            initializeUserStatusToggles();
+            
+            // 监听重置方式选择变化
+            const resetMethodRadios = document.querySelectorAll('input[name="resetMethod"]');
+            resetMethodRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const customPasswordDiv = document.getElementById('customPasswordDiv');
+                    if (this.value === 'custom') {
+                        customPasswordDiv.classList.remove('hidden');
+                        document.getElementById('customPassword').focus();
+                    } else {
+                        customPasswordDiv.classList.add('hidden');
+                        document.getElementById('customPassword').value = '';
+                    }
+                });
+            });
+        }
+    </script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initPage === 'function') {
+                initPage('user-management');
+            }
+        });
+    </script>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

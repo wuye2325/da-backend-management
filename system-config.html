@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统配置 - 大家共治中台系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/tab-system.js"></script>
+    <script src="js/layout.js"></script>
+    <script type="module" src="js/components/tab-component.js"></script>
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #3b82f6;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        
+
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- 侧边栏容器 -->
+        <div id="sidebar-container"></div>
+        
+        <!-- 主内容区域 -->
+        <div class="flex-1 flex flex-col">
+            <!-- 顶部导航容器 -->
+            <div id="top-navigation-container"></div>
+            
+            <!-- 全局页签系统容器 -->
+            <div id="global-tab-system"></div>
+            
+            <!-- 主要内容 -->
+            <main class="flex-1 p-6 overflow-y-auto">
+                <div class="max-w-6xl mx-auto">
+                    <!-- 页面标题 -->
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold text-gray-900">系统配置</h1>
+                    </div>
+
+                    <!-- 数据筛选区域 -->
+                    <div class="bg-white rounded-lg shadow p-6 mb-6">
+                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <!-- 筛选标题 -->
+                            <div class="flex items-center">
+                                <h2 class="text-lg font-semibold text-gray-900">小区选择</h2>
+                            </div>
+                            
+                            <!-- 筛选控件区域 -->
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <!-- 小区名称下拉搜索框 -->
+                                <div class="relative">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">小区名称</label>
+                                    <div class="relative">
+                                        <input type="text" id="communitySearch" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="搜索或选择小区..." autocomplete="off">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-search text-gray-400"></i>
+                                        </div>
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                            <i class="fas fa-chevron-down text-gray-400 cursor-pointer" id="communityDropdownIcon"></i>
+                                        </div>
+                                        
+                                        <!-- 下拉选项列表 -->
+                                        <div id="communityDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto">
+                                            <div class="p-2">
+                                                <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded bg-blue-50" data-value="all"><i class="community-checkbox fas fa-square-check text-blue-600 mr-2"></i>
+                                                    <i class="fas fa-globe text-blue-600 mr-2"></i>
+                                                    全部小区
+                                                </div>
+                                                <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="sunshine-garden"><i class="community-checkbox far fa-square text-gray-400 mr-2"></i>
+                                                    <i class="fas fa-building text-green-600 mr-2"></i>
+                                                    阳光花园小区
+                                                </div>
+                                                <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="golden-coast"><i class="community-checkbox far fa-square text-gray-400 mr-2"></i>
+                                                    <i class="fas fa-building text-yellow-600 mr-2"></i>
+                                                    金色海岸小区
+                                                </div>
+                                                <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="green-valley"><i class="community-checkbox far fa-square text-gray-400 mr-2"></i>
+                                                    <i class="fas fa-building text-emerald-600 mr-2"></i>
+                                                    绿谷家园小区
+                                                </div>
+                                                <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="blue-sky"><i class="community-checkbox far fa-square text-gray-400 mr-2"></i>
+                                                    <i class="fas fa-building text-sky-600 mr-2"></i>
+                                                    蓝天雅苑小区
+                                                </div>
+                                                <div class="community-option px-3 py-2 hover:bg-blue-50 cursor-pointer rounded" data-value="peaceful-home"><i class="community-checkbox far fa-square text-gray-400 mr-2"></i>
+                                                    <i class="fas fa-building text-purple-600 mr-2"></i>
+                                                    安居家园小区
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+
+                                <!-- 应用筛选按钮 -->
+                                <div class="flex items-end gap-3">
+                                    <button id="applyFilters" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center">
+                                        确认选择
+                                    </button>
+                                    <button id="resetFilters" class="px-6 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors flex items-center">
+                                        <i class="fas fa-undo mr-2"></i>
+                                        重置
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 当前筛选状态显示 -->
+                        <div id="filterStatus" class="mt-4 pt-4 border-t border-gray-200">
+                            <!-- 蓝色文字已移除，避免与下方标签重复显示 -->
+                            
+                            <!-- 已选择小区标签显示 -->
+                            <div id="selectedCommunitiesTags" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- 配置卡片容器 -->
+                    <div class="space-y-6 mb-6">
+                        <!-- 通知配置卡片 -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                                公告、通知配置
+                            </h2>
+                            
+                            <!-- 公告通知轮播时间 -->
+                            <div class="mb-4">
+                                <label for="carousel-time" class="block text-sm font-medium text-gray-700 mb-2">
+                                    轮播时间
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" id="carousel-time" name="carouselTime" 
+                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                           min="1" max="60" value="5">
+                                    <span class="text-sm text-gray-500">秒</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">设置每条公告和通知的显示时间（1-60秒）</p>
+                            </div>
+
+                            <!-- 公共通知默认置顶 -->
+                            <div class="mb-4">
+                                <label class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">默认置顶</span>
+                                    <div class="relative">
+                                        <input type="checkbox" id="default-top" name="defaultTop" class="sr-only">
+                                        <div class="toggle-bg w-10 h-6 bg-gray-200 rounded-full shadow-inner cursor-pointer transition-colors duration-200"></div>
+                                        <div class="toggle-dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-1 transition-transform duration-200"></div>
+                                    </div>
+                                </label>
+                                <p class="text-xs text-gray-500 mt-1">开启后，发布通知时默认选中置顶选项</p>
+                            </div>
+                        </div>
+
+                        <!-- 热点配置卡片 -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                                热点关注配置
+                            </h2>
+                            
+                            <!-- 刷新时效 -->
+                            <div class="mb-4">
+                                <label for="hotspot-refresh" class="block text-sm font-medium text-gray-700 mb-2">
+                                    刷新时效
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" id="hotspot-refresh" name="hotspotRefresh" 
+                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                           min="1" max="1440" value="30">
+                                    <select id="refresh-unit" name="refreshUnit" 
+                                            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="minutes">分钟</option>
+                                        <option value="hours">小时</option>
+                                    </select>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">设置热点关注内容的自动刷新频率</p>
+                            </div>
+                        </div>
+
+                        <!-- 附议配置卡片 -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                                小区建议配置
+                            </h2>
+                            
+                            <!-- 附议阈值比例 -->
+                            <div class="mb-4">
+                                <label for="proposal-threshold" class="block text-sm font-medium text-gray-700 mb-2">
+                                    附议通过比例
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" id="proposal-threshold" name="proposalThreshold" 
+                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                           min="1" max="100" step="1" value="5">
+                                    <span class="text-sm text-gray-500">%</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">设置附议通过所需的最低比例，范围：1-100%（整数）</p>
+                            </div>
+
+                            <!-- 附议投票时间 -->
+                            <div class="mb-4">
+                                <label for="proposal-duration" class="block text-sm font-medium text-gray-700 mb-2">
+                                    附议投票时间
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" id="proposal-duration" name="proposalDuration" 
+                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                           min="1" max="60" value="7">
+                                    <span class="text-sm text-gray-500">天</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">设置附议投票的持续时间，范围：1-60天</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="flex justify-end space-x-4">
+                            <button type="button" id="reset-btn" 
+                                    class="px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
+                                重置
+                            </button>
+                            <button type="button" id="save-btn" 
+                                    class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                                保存配置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+
+    <script type="module">
+        import { TabComponent } from './js/components/tab-component.js';
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化布局
+            initPage('system-config');
+
+            // 初始化小区筛选功能
+            initCommunityFilter();
+
+            // 配置Tab数据
+            const tabConfig = {
+                tabs: [
+                    {
+                        id: 'notification',
+                        title: '通知配置',
+                        content: `
+                            <div class="space-y-6">
+                                <!-- 公告通知轮播时间 -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="carousel-time" class="block text-sm font-medium text-gray-700 mb-2">
+                                            公告通知轮播时间
+                                        </label>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="number" id="carousel-time" name="carousel-time" min="1" max="60" value="5" 
+                                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <span class="text-sm text-gray-500">秒</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">设置小程序上方公告通知的轮播显示时间</p>
+                                    </div>
+
+                                    <!-- 公共通知默认置顶 -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                                            公共通知默认置顶
+                                        </label>
+                                        <div class="flex items-center">
+                                            <button type="button" id="default-top-toggle" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" role="switch" aria-checked="false">
+                                                <span class="sr-only">启用默认置顶</span>
+                                                <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+                                            </button>
+                                            <span class="ml-3 text-sm text-gray-700">发布通知时默认开启置顶</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">开启后，发布公共通知时将自动勾选置顶选项</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        id: 'hotspot',
+                        title: '热点配置',
+                        content: `
+                            <div class="space-y-6">
+                                <!-- 热点关注刷新时效 -->
+                                <div class="max-w-md">
+                                    <label for="hotspot-refresh" class="block text-sm font-medium text-gray-700 mb-2">
+                                        热点关注刷新时效
+                                    </label>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="number" id="hotspot-refresh" name="hotspot-refresh" min="1" max="1440" value="30" 
+                                               class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <select id="refresh-unit" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="minutes">分钟</option>
+                                            <option value="hours">小时</option>
+                                        </select>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">设置小程序热点关注内容的自动刷新间隔时间</p>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        id: 'proposal',
+                        title: '附议配置',
+                        content: `
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- 附议阈值比例 -->
+                                    <div>
+                                        <label for="proposal-threshold" class="block text-sm font-medium text-gray-700 mb-2">
+                                            附议阈值比例
+                                        </label>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="number" id="proposal-threshold" name="proposal-threshold" min="1" max="100" value="5" step="0.1"
+                                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <span class="text-sm text-gray-500">%</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">设置附议通过所需的最低比例</p>
+                                    </div>
+
+                                    <!-- 附议投票时间 -->
+                                    <div>
+                                        <label for="proposal-duration" class="block text-sm font-medium text-gray-700 mb-2">
+                                            附议投票时间
+                                        </label>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="number" id="proposal-duration" name="proposal-duration" min="1" max="168" value="24"
+                                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <span class="text-sm text-gray-500">小时</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">设置附议投票的持续时间</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    }
+                ],
+                defaultTab: 'notification',
+                onTabChange: function(tabId) {
+                    console.log('切换到标签页:', tabId);
+                    // 初始化当前标签页的特定功能
+                    initTabFeatures(tabId);
+                }
+            };
+
+            // 初始化Tab组件
+            const tabComponent = new TabComponent('config-tabs-container', tabConfig);
+
+            // 初始化标签页特定功能
+            function initTabFeatures(tabId) {
+                if (tabId === 'notification') {
+                    initNotificationTab();
+                } else if (tabId === 'hotspot') {
+                    initHotspotTab();
+                } else if (tabId === 'proposal') {
+                    initProposalTab();
+                }
+            }
+
+            // 初始化通知配置标签页
+            function initNotificationTab() {
+                const toggle = document.getElementById('default-top-toggle');
+                if (toggle) {
+                    toggle.addEventListener('click', function() {
+                        const isEnabled = toggle.getAttribute('aria-checked') === 'true';
+                        const newState = !isEnabled;
+                        
+                        toggle.setAttribute('aria-checked', newState);
+                        const span = toggle.querySelector('span:last-child');
+                        
+                        if (newState) {
+                            toggle.classList.remove('bg-gray-200');
+                            toggle.classList.add('bg-blue-600');
+                            span.classList.remove('translate-x-0');
+                            span.classList.add('translate-x-5');
+                        } else {
+                            toggle.classList.remove('bg-blue-600');
+                            toggle.classList.add('bg-gray-200');
+                            span.classList.remove('translate-x-5');
+                            span.classList.add('translate-x-0');
+                        }
+                    });
+                }
+            }
+
+            // 初始化热点配置标签页
+            function initHotspotTab() {
+                // 热点配置相关的初始化逻辑
+                console.log('初始化热点配置标签页');
+            }
+
+            // 初始化附议配置标签页
+            function initProposalTab() {
+                // 附议配置相关的初始化逻辑
+                console.log('初始化附议配置标签页');
+                
+                // 初始化数字输入框验证
+                 const proposalDurationInput = document.getElementById('proposal-duration');
+                 const proposalThresholdInput = document.getElementById('proposal-threshold');
+                 
+                 if (proposalDurationInput) {
+                     proposalDurationInput.addEventListener('input', function() {
+                         const value = Math.min(Math.max(parseInt(this.value) || 1, 1), 60);
+                         this.value = value;
+                     });
+                 }
+                 
+                 if (proposalThresholdInput) {
+                     proposalThresholdInput.addEventListener('input', function() {
+                         const value = Math.min(Math.max(parseInt(this.value) || 1, 1), 100);
+                         this.value = value;
+                     });
+                 }
+            }
+
+            // 保存配置
+            document.getElementById('save-btn').addEventListener('click', function() {
+                const config = {
+                    carouselTime: document.getElementById('carousel-time')?.value || 5,
+                    defaultTop: document.getElementById('default-top-toggle')?.getAttribute('aria-checked') === 'true',
+                    hotspotRefresh: document.getElementById('hotspot-refresh')?.value || 30,
+                    refreshUnit: document.getElementById('refresh-unit')?.value || 'minutes',
+                    proposalThreshold: document.getElementById('proposal-threshold')?.value || 5,
+                    proposalDuration: document.getElementById('proposal-duration')?.value || 24
+                };
+
+                // 这里应该调用API保存配置
+                console.log('保存配置:', config);
+                
+                // 显示成功提示
+                showSuccessModal();
+            });
+
+            // 重置配置
+            document.getElementById('reset-btn').addEventListener('click', function() {
+                if (confirm('确定要重置所有配置为默认值吗？')) {
+                    // 重置所有表单值
+                    document.getElementById('carousel-time').value = 5;
+                    document.getElementById('hotspot-refresh').value = 30;
+                    document.getElementById('refresh-unit').value = 'minutes';
+                    document.getElementById('proposal-threshold').value = 5;
+                    document.getElementById('proposal-duration').value = 24;
+                    
+                    // 重置开关状态
+                    const toggle = document.getElementById('default-top-toggle');
+                    if (toggle) {
+                        toggle.setAttribute('aria-checked', 'false');
+                        toggle.classList.remove('bg-blue-600');
+                        toggle.classList.add('bg-gray-200');
+                        const span = toggle.querySelector('span:last-child');
+                        span.classList.remove('translate-x-5');
+                        span.classList.add('translate-x-0');
+                    }
+                }
+            });
+
+            // 显示成功模态框
+            function showSuccessModal() {
+                const modal = document.getElementById('success-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            // 关闭成功模态框
+            document.getElementById('close-success-modal').addEventListener('click', function() {
+                const modal = document.getElementById('success-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            });
+
+            // 初始化默认标签页功能
+            setTimeout(() => {
+                initTabFeatures('notification');
+            }, 100);
+        });
+
+        // 初始化小区筛选功能
+        function initCommunityFilter() {
+            // 添加延迟确保DOM元素加载完成
+            setTimeout(() => {
+                const communitySearch = document.getElementById('communitySearch');
+                const communityDropdown = document.getElementById('communityDropdown');
+                const communityDropdownIcon = document.getElementById('communityDropdownIcon');
+                const applyFiltersBtn = document.getElementById('applyFilters');
+                const selectedCommunitiesTags = document.getElementById('selectedCommunitiesTags');
+                
+                // 检查元素是否存在
+                if (!communitySearch || !communityDropdown || !communityDropdownIcon) {
+                    console.error('小区筛选元素未找到:', {
+                        communitySearch: !!communitySearch,
+                        communityDropdown: !!communityDropdown,
+                        communityDropdownIcon: !!communityDropdownIcon
+                    });
+                    return;
+                }
+                
+                console.log('小区筛选元素初始化成功');
+                
+                let selectedCommunities = ['all']; // 默认选中全部小区
+
+                // 点击输入框或下拉箭头切换下拉菜单
+                function toggleDropdown(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const isHidden = communityDropdown.classList.contains('hidden');
+                    console.log('切换下拉菜单 - 当前隐藏状态:', isHidden);
+                    
+                    if (isHidden) {
+                        console.log('显示下拉菜单');
+                        communityDropdown.classList.remove('hidden');
+                        communityDropdownIcon.classList.remove('fa-chevron-down');
+                        communityDropdownIcon.classList.add('fa-chevron-up');
+                    } else {
+                        console.log('隐藏下拉菜单');
+                        communityDropdown.classList.add('hidden');
+                        communityDropdownIcon.classList.remove('fa-chevron-up');
+                        communityDropdownIcon.classList.add('fa-chevron-down');
+                    }
+                }
+
+                // 绑定点击事件
+                communitySearch.addEventListener('click', toggleDropdown);
+                communityDropdownIcon.addEventListener('click', toggleDropdown);
+
+                // 点击其他地方关闭下拉菜单
+                document.addEventListener('click', function(event) {
+                    const isInsideDropdown = communityDropdown.contains(event.target);
+                    const isSearchInput = communitySearch.contains(event.target);
+                    const isDropdownIcon = communityDropdownIcon.contains(event.target);
+                    
+                    if (!isInsideDropdown && !isSearchInput && !isDropdownIcon) {
+                        communityDropdown.classList.add('hidden');
+                        communityDropdownIcon.classList.remove('fa-chevron-up');
+                        communityDropdownIcon.classList.add('fa-chevron-down');
+                    }
+                });
+
+                // 处理小区选项点击
+                communityDropdown.addEventListener('click', function(event) {
+                    const option = event.target.closest('.community-option');
+                    if (!option) return;
+
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const value = option.dataset.value;
+                    console.log('点击小区选项:', value);
+
+                    if (value === 'all') {
+                        // 点击全部小区
+                        if (selectedCommunities.includes('all')) {
+                            return; // 全部小区不能取消选择
+                        } else {
+                            selectedCommunities = ['all'];
+                            updateCheckboxStates();
+                        }
+                    } else {
+                        // 点击具体小区
+                        if (selectedCommunities.includes('all')) {
+                            // 如果当前选中的是全部，则更换为当前点击的小区
+                            selectedCommunities = [value];
+                        } else {
+                            // 切换具体小区的选中状态
+                            if (selectedCommunities.includes(value)) {
+                                selectedCommunities = selectedCommunities.filter(id => id !== value);
+                                // 如果没有选中任何小区，默认选中全部
+                                if (selectedCommunities.length === 0) {
+                                    selectedCommunities = ['all'];
+                                }
+                            } else {
+                                selectedCommunities.push(value);
+                            }
+                        }
+                        updateCheckboxStates();
+                    }
+
+                    updateSearchInput();
+                    updateSelectedTags();
+                });
+
+                // 更新复选框状态
+                function updateCheckboxStates() {
+                    const options = communityDropdown.querySelectorAll('.community-option');
+                    options.forEach(option => {
+                        const value = option.dataset.value;
+                        const checkbox = option.querySelector('.community-checkbox');
+                        const isSelected = selectedCommunities.includes(value);
+
+                        if (isSelected) {
+                            checkbox.className = 'community-checkbox fas fa-square-check text-blue-600 mr-2';
+                            option.classList.add('bg-blue-50');
+                        } else {
+                            checkbox.className = 'community-checkbox far fa-square text-gray-400 mr-2';
+                            option.classList.remove('bg-blue-50');
+                        }
+                    });
+                }
+
+                // 更新搜索输入框文本
+                function updateSearchInput() {
+                    if (selectedCommunities.includes('all')) {
+                        communitySearch.value = '全部小区';
+                    } else {
+                        const names = selectedCommunities.map(value => {
+                            const option = communityDropdown.querySelector(`[data-value="${value}"]`);
+                            if (option) {
+                                // 获取小区名称（去除图标和复选框）
+                                const textContent = option.textContent.trim();
+                                const lines = textContent.split('\n').filter(line => line.trim());
+                                return lines[lines.length - 1].trim();
+                            }
+                            return value;
+                        });
+                        communitySearch.value = names.join('、');
+                    }
+                }
+
+                // 更新已选择标签
+                function updateSelectedTags() {
+                    if (!selectedCommunitiesTags) return;
+                    
+                    selectedCommunitiesTags.innerHTML = '';
+                    
+                    if (selectedCommunities.includes('all')) {
+                        selectedCommunitiesTags.innerHTML = `
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                <i class="fas fa-globe mr-1"></i>
+                                全部小区
+                            </span>
+                        `;
+                    } else {
+                        selectedCommunities.forEach(value => {
+                            const option = communityDropdown.querySelector(`[data-value="${value}"]`);
+                            if (option) {
+                                const textContent = option.textContent.trim();
+                                const lines = textContent.split('\n').filter(line => line.trim());
+                                const name = lines[lines.length - 1].trim();
+                                const icon = option.querySelector('i:not(.community-checkbox)');
+                                const iconClass = icon ? icon.className : 'fas fa-building';
+                                
+                                selectedCommunitiesTags.innerHTML += `
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        <i class="${iconClass} mr-1"></i>
+                                        ${name}
+                                        <button type="button" class="ml-1 text-gray-500 hover:text-red-500" onclick="removeCommunityTag('${value}')">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </span>
+                                `;
+                            }
+                        });
+                    }
+                }
+
+                // 移除小区标签
+                window.removeCommunityTag = function(value) {
+                    selectedCommunities = selectedCommunities.filter(id => id !== value);
+                    if (selectedCommunities.length === 0) {
+                        selectedCommunities = ['all'];
+                    }
+                    updateCheckboxStates();
+                    updateSearchInput();
+                    updateSelectedTags();
+                };
+
+                // 应用筛选
+                if (applyFiltersBtn) {
+                    applyFiltersBtn.addEventListener('click', function() {
+                        console.log('应用筛选，选中的小区:', selectedCommunities);
+                        
+                        // 显示成功提示
+                        showFilterAppliedMessage();
+                        
+                        // 根据选中的小区加载对应的系统配置
+                        loadConfigForCommunities(selectedCommunities);
+                    });
+                }
+
+                // 重置筛选
+                const resetFiltersBtn = document.getElementById('resetFilters');
+                if (resetFiltersBtn) {
+                    resetFiltersBtn.addEventListener('click', function() {
+                        console.log('重置筛选条件');
+                        
+                        // 重置选中的小区为全部小区
+                        selectedCommunities = ['all'];
+                        
+                        // 更新UI状态
+                        updateCheckboxStates();
+                        updateSearchInput();
+                        updateSelectedTags();
+                        
+                        // 显示重置成功提示
+                        showResetMessage();
+                        
+                        // 重置后自动加载全部小区的配置
+                        loadConfigForCommunities(selectedCommunities);
+                    });
+                }
+
+                // 显示筛选应用成功消息
+                function showFilterAppliedMessage() {
+                    const message = document.createElement('div');
+                    message.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center';
+                    message.innerHTML = `
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span>筛选条件已应用</span>
+                    `;
+                    document.body.appendChild(message);
+                    
+                    setTimeout(() => {
+                        message.remove();
+                    }, 3000);
+                }
+
+                // 显示重置成功消息
+                function showResetMessage() {
+                    const message = document.createElement('div');
+                    message.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center';
+                    message.innerHTML = `
+                        <i class="fas fa-undo mr-2"></i>
+                        <span>筛选条件已重置</span>
+                    `;
+                    document.body.appendChild(message);
+                    
+                    setTimeout(() => {
+                        message.remove();
+                    }, 3000);
+                }
+
+                // 根据选中小区加载配置
+                function loadConfigForCommunities(communities) {
+                    console.log('正在加载选中小区的配置:', communities);
+                }
+
+                // 初始化显示
+                updateCheckboxStates();
+                updateSearchInput();
+                updateSelectedTags();
+                
+                console.log('小区筛选功能初始化完成');
+            }, 500); // 延迟500ms确保DOM加载完成
+        }
+    </script>
+    
+    <!-- 必要的脚本文件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
+    <script>
+        // 初始化小区筛选功能
+        function initCommunityFilter() {
+            // 添加延迟确保 DOM元素加载完成
+            setTimeout(() => {
+                const communitySearch = document.getElementById('communitySearch');
+                const communityDropdown = document.getElementById('communityDropdown');
+                const communityDropdownIcon = document.getElementById('communityDropdownIcon');
+                const applyFiltersBtn = document.getElementById('applyFilters');
+                const selectedCommunitiesTags = document.getElementById('selectedCommunitiesTags');
+                
+                // 检查元素是否存在
+                if (!communitySearch || !communityDropdown || !communityDropdownIcon) {
+                    console.error('小区筛选元素未找到:', {
+                        communitySearch: !!communitySearch,
+                        communityDropdown: !!communityDropdown,
+                        communityDropdownIcon: !!communityDropdownIcon
+                    });
+                    return;
+                }
+                
+                console.log('小区筛选元素初始化成功');
+                
+                let selectedCommunities = ['all']; // 默认选中全部小区
+
+                // 点击输入框或下拉箭头切换下拉菜单
+                function toggleDropdown(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const isHidden = communityDropdown.classList.contains('hidden');
+                    console.log('切换下拉菜单 - 当前隐藏状态:', isHidden);
+                    
+                    if (isHidden) {
+                        console.log('显示下拉菜单');
+                        communityDropdown.classList.remove('hidden');
+                        communityDropdownIcon.classList.remove('fa-chevron-down');
+                        communityDropdownIcon.classList.add('fa-chevron-up');
+                    } else {
+                        console.log('隐藏下拉菜单');
+                        communityDropdown.classList.add('hidden');
+                        communityDropdownIcon.classList.remove('fa-chevron-up');
+                        communityDropdownIcon.classList.add('fa-chevron-down');
+                    }
+                }
+
+                // 绑定点击事件
+                communitySearch.addEventListener('click', toggleDropdown);
+                communityDropdownIcon.addEventListener('click', toggleDropdown);
+
+                // 点击其他地方关闭下拉菜单
+                document.addEventListener('click', function(event) {
+                    const isInsideDropdown = communityDropdown.contains(event.target);
+                    const isSearchInput = communitySearch.contains(event.target);
+                    const isDropdownIcon = communityDropdownIcon.contains(event.target);
+                    
+                    if (!isInsideDropdown && !isSearchInput && !isDropdownIcon) {
+                        communityDropdown.classList.add('hidden');
+                        communityDropdownIcon.classList.remove('fa-chevron-up');
+                        communityDropdownIcon.classList.add('fa-chevron-down');
+                    }
+                });
+
+                // 处理小区选项点击
+                communityDropdown.addEventListener('click', function(event) {
+                    const option = event.target.closest('.community-option');
+                    if (!option) return;
+
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const value = option.dataset.value;
+                    console.log('点击小区选项:', value);
+
+                    if (value === 'all') {
+                        // 点击全部小区
+                        if (selectedCommunities.includes('all')) {
+                            return; // 全部小区不能取消选择
+                        } else {
+                            selectedCommunities = ['all'];
+                            updateCheckboxStates();
+                        }
+                    } else {
+                        // 点击具体小区
+                        if (selectedCommunities.includes('all')) {
+                            // 如果当前选中的是全部，则更换为当前点击的小区
+                            selectedCommunities = [value];
+                        } else {
+                            // 切换具体小区的选中状态
+                            if (selectedCommunities.includes(value)) {
+                                selectedCommunities = selectedCommunities.filter(id => id !== value);
+                                // 如果没有选中任何小区，默认选中全部
+                                if (selectedCommunities.length === 0) {
+                                    selectedCommunities = ['all'];
+                                }
+                            } else {
+                                selectedCommunities.push(value);
+                            }
+                        }
+                        updateCheckboxStates();
+                    }
+
+                    updateSearchInput();
+                    updateSelectedTags();
+                });
+
+                // 更新复选框状态
+                function updateCheckboxStates() {
+                    const options = communityDropdown.querySelectorAll('.community-option');
+                    options.forEach(option => {
+                        const value = option.dataset.value;
+                        const checkbox = option.querySelector('.community-checkbox');
+                        const isSelected = selectedCommunities.includes(value);
+
+                        if (isSelected) {
+                            checkbox.className = 'community-checkbox fas fa-square-check text-blue-600 mr-2';
+                            option.classList.add('bg-blue-50');
+                        } else {
+                            checkbox.className = 'community-checkbox far fa-square text-gray-400 mr-2';
+                            option.classList.remove('bg-blue-50');
+                        }
+                    });
+                }
+
+                // 更新搜索输入框文本
+                function updateSearchInput() {
+                    if (selectedCommunities.includes('all')) {
+                        communitySearch.value = '全部小区';
+                    } else {
+                        const names = selectedCommunities.map(value => {
+                            const option = communityDropdown.querySelector(`[data-value="${value}"]`);
+                            if (option) {
+                                // 获取小区名称（去除图标和复选框）
+                                const textContent = option.textContent.trim();
+                                const lines = textContent.split('\n').filter(line => line.trim());
+                                return lines[lines.length - 1].trim();
+                            }
+                            return value;
+                        });
+                        communitySearch.value = names.join('、');
+                    }
+                }
+
+                // 更新已选择标签
+                function updateSelectedTags() {
+                    if (!selectedCommunitiesTags) return;
+                    
+                    selectedCommunitiesTags.innerHTML = '';
+                    
+                    if (selectedCommunities.includes('all')) {
+                        selectedCommunitiesTags.innerHTML = `
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                <i class="fas fa-globe mr-1"></i>
+                                全部小区
+                            </span>
+                        `;
+                    } else {
+                        selectedCommunities.forEach(value => {
+                            const option = communityDropdown.querySelector(`[data-value="${value}"]`);
+                            if (option) {
+                                const textContent = option.textContent.trim();
+                                const lines = textContent.split('\n').filter(line => line.trim());
+                                const name = lines[lines.length - 1].trim();
+                                const icon = option.querySelector('i:not(.community-checkbox)');
+                                const iconClass = icon ? icon.className : 'fas fa-building';
+                                
+                                selectedCommunitiesTags.innerHTML += `
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        <i class="${iconClass} mr-1"></i>
+                                        ${name}
+                                        <button type="button" class="ml-1 text-gray-500 hover:text-red-500" onclick="removeCommunityTag('${value}')">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </span>
+                                `;
+                            }
+                        });
+                    }
+                }
+
+                // 移除小区标签
+                window.removeCommunityTag = function(value) {
+                    selectedCommunities = selectedCommunities.filter(id => id !== value);
+                    if (selectedCommunities.length === 0) {
+                        selectedCommunities = ['all'];
+                    }
+                    updateCheckboxStates();
+                    updateSearchInput();
+                    updateSelectedTags();
+                };
+
+                // 应用筛选
+                if (applyFiltersBtn) {
+                    applyFiltersBtn.addEventListener('click', function() {
+                        console.log('应用筛选，选中的小区:', selectedCommunities);
+                        
+                        // 显示成功提示
+                        showFilterAppliedMessage();
+                        
+                        // 根据选中的小区加载对应的系统配置
+                        loadConfigForCommunities(selectedCommunities);
+                    });
+                }
+
+                // 显示筛选应用成功消息
+                function showFilterAppliedMessage() {
+                    const message = document.createElement('div');
+                    message.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center';
+                    message.innerHTML = `
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span>筛选条件已应用</span>
+                    `;
+                    document.body.appendChild(message);
+                    
+                    setTimeout(() => {
+                        message.remove();
+                    }, 3000);
+                }
+
+                // 根据选中小区加载配置
+                function loadConfigForCommunities(communities) {
+                    console.log('正在加载选中小区的配置:', communities);
+                }
+
+                // 初始化显示
+                updateCheckboxStates();
+                updateSearchInput();
+                updateSelectedTags();
+                
+                console.log('小区筛选功能初始化完成');
+            }, 500); // 延迟500ms确保 DOM加载完成
+        }
+        
+        // 使用DOMContentLoaded事件确保页面完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM已加载完成');
+            
+            // 初始化页面
+            initPage('system-config');
+            
+            // 初始化小区筛选功能
+            initCommunityFilter();
+        });
+        
+        // 兼容性备用方案：如果DOMContentLoaded已经触发或者页面已加载
+        if (document.readyState === 'loading') {
+            // DOM仍在加载中，等待DOMContentLoaded
+        } else {
+            // DOM已加载完成，直接初始化
+            console.log('页面已加载，直接初始化');
+            initPage('system-config');
+            initCommunityFilter();
+        }
+    </script>
+</body>
+</html>

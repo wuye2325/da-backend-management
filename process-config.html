@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流程配置 - 大家共治后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <style>
+        .step-item {
+            transition: all 0.3s ease;
+        }
+        .step-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .drag-handle {
+            cursor: move;
+        }
+        .drag-handle:hover {
+            color: #4f46e5;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation Container -->
+            <div id="top-navigation-container"></div>
+
+            <!-- Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Header -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900">新建流程</h1>
+                                <p class="text-gray-600 mt-1">设计和配置审批流程模板</p>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button onclick="saveTemplate()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-save mr-2"></i>保存模板
+                                </button>
+                                <button onclick="previewTemplate()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-eye mr-2"></i>预览
+                                </button>
+                                <button onclick="goBack()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-arrow-left mr-2"></i>返回
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Info -->
+                    <div class="bg-white rounded-lg shadow mb-6">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">基本信息</h3>
+                        </div>
+                        <div class="p-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">流程名称</label>
+                                <input type="text" id="templateName" placeholder="请输入流程名称" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Configuration -->
+                    <div class="bg-white rounded-lg shadow mb-6">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">表单配置</h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">表单内容</label>
+                                <p class="text-sm text-gray-500 mb-3">使用富文本编辑器设计表单内容，可以插入常用模板快速开始</p>
+                            </div>
+                            <div id="notification-content" style="height: 300px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Process Steps -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-medium text-gray-900">流程步骤</h3>
+                                <div class="flex space-x-2">
+                                    <button onclick="addStep('approval')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+                                        <i class="fas fa-plus mr-1"></i>增加步骤
+                                    </button>
+                                    <button onclick="addStep('notification')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm flex items-center">
+            <i class="fas fa-bell mr-1"></i>增加抄送
+        </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div id="stepsContainer" class="space-y-4">
+                                <!-- 步骤将在这里动态生成 -->
+                            </div>
+                            <div id="emptyState" class="text-center py-12 text-gray-500">
+                                <i class="fas fa-plus-circle text-4xl mb-4"></i>
+                                <p>暂无流程步骤，点击上方按钮添加步骤</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div id="previewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">流程预览</h3>
+                <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div id="previewContent" class="space-y-6">
+                <!-- 预览内容将在这里动态生成 -->
+            </div>
+            
+            <div class="flex justify-end mt-6 pt-4 border-t">
+                <button onclick="closePreview()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let stepCounter = 0;
+        let steps = [];
+        let formFieldCounter = 0;
+        let formFields = [];
+        
+        // 人员数据结构
+        const personnelData = {
+            '业委会成员': [
+                { id: 'ywh_001', name: '张主任' },
+                { id: 'ywh_002', name: '李副主任' },
+                { id: 'ywh_003', name: '王委员' },
+                { id: 'ywh_004', name: '赵委员' },
+                { id: 'ywh_005', name: '陈委员' }
+            ],
+            '物业成员': [
+                { id: 'wy_001', name: '刘经理' },
+                { id: 'wy_002', name: '孙主管' },
+                { id: 'wy_003', name: '周专员' },
+                { id: 'wy_004', name: '吴助理' },
+                { id: 'wy_005', name: '郑客服' }
+            ]
+        };
+
+
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initPage('template-process');
+            
+            // 初始化富文本编辑器
+            initFormEditor();
+            
+            // 检查页面模式并动态设置页面标题
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const templateId = urlParams.get('id');
+            
+            // 根据mode参数动态设置页面标题
+            console.log('URL参数 - mode:', mode, 'templateId:', templateId);
+            
+            const pageTitleElement = document.querySelector('h1.text-2xl.font-bold.text-gray-900');
+            console.log('找到的标题元素:', pageTitleElement);
+            
+            if (pageTitleElement) {
+                if (mode === 'create') {
+                    pageTitleElement.textContent = '新建流程';
+                    console.log('设置标题为: 新建流程');
+                } else if (mode === 'edit') {
+                    pageTitleElement.textContent = '编辑流程';
+                    console.log('设置标题为: 编辑流程');
+                } else {
+                    // 默认显示新建流程
+                    pageTitleElement.textContent = '新建流程';
+                    console.log('设置默认标题为: 新建流程');
+                }
+            } else {
+                console.error('未找到页面标题元素');
+            }
+            
+            if (mode === 'edit' && templateId) {
+                 loadTemplateData(templateId);
+             } else if (mode === 'preview' && templateId) {
+                // 预览模式：隐藏编辑界面，只显示预览模态框
+                document.getElementById('main-content').style.display = 'none';
+                // 加载模板数据，完成后显示预览模态框
+                loadTemplateData(templateId, () => {
+                    console.log('数据加载完成，显示预览模态框');
+                    // 延迟一下确保数据渲染完成
+                    setTimeout(() => {
+                        previewTemplate();
+                    }, 100);
+                });
+            }
+             // 新建模式不需要加载数据
+        });
+
+        /**
+         * 加载模板数据（编辑和预览模式）
+         */
+        function loadTemplateData(templateId, callback) {
+            if (templateId) {
+                // 模拟加载现有模板数据
+                const templateData = getTemplateById(templateId);
+                if (templateData) {
+                    console.log('加载模板数据:', templateData);
+                    
+                    // 安全地设置表单值，避免元素不存在的错误
+                    const templateNameEl = document.getElementById('templateName');
+                    
+                    if (templateNameEl) templateNameEl.value = templateData.name;
+                    
+                    // 设置富文本编辑器内容
+                    if (templateData.formContent) {
+                        setFormContent(templateData.formContent);
+                    }
+                    
+                    console.log('表单元素检查:', {
+                        templateName: !!templateNameEl,
+                        formContent: !!templateData.formContent
+                    });
+                    
+                    // 清空现有步骤
+                    steps = [];
+                    stepCounter = 0;
+                    const stepsContainerEl = document.getElementById('stepsContainer');
+                    if (stepsContainerEl) {
+                        stepsContainerEl.innerHTML = '';
+                    } else {
+                        console.warn('stepsContainer 元素未找到');
+                    }
+                    
+                    // 加载步骤
+                    templateData.steps.forEach(stepData => {
+                        addStepFromData(stepData);
+                    });
+                    
+                    console.log('步骤加载完成，共', steps.length, '个步骤');
+                    
+                    // 如果有回调函数，延迟执行以确保DOM更新完成
+                    if (callback) {
+                        setTimeout(callback, 200);
+                    }
+                }
+            }
+        }
+
+        /**
+         * 根据ID获取模板数据（模拟）
+         */
+        function getTemplateById(id) {
+            // 将模板ID映射到对应的后台流程类型
+            const templateMapping = {
+                '1': {
+                    name: '支出申请',
+                    description: '企业日常支出申请审批流程',
+                    formContent: `<p><strong>支出用途：</strong></p>
+<p><strong>申请金额：</strong></p>
+<p><strong>支付账户：</strong></p>
+<p><strong>收款方：</strong></p>
+<p><strong>收款账号：</strong></p>`,
+                    steps: [
+                        { type: 'approval', role: '财务负责人', approvers: [], approvalType: 'or_sign' },
+                        { type: 'approval', role: '业委会主任', approvers: [], approvalType: 'or_sign' },
+                        { type: 'notification', role: '申请人', approvers: [] }
+                    ]
+                },
+                '2': {
+                    name: '用印申请',
+                    description: '公司印章使用申请审批流程',
+                    formContent: `<p><strong>用印事由：</strong></p>
+<p><strong>印章类型：</strong></p>`,
+                    steps: [
+                        { type: 'approval', role: '物业管理员', approvers: [], approvalType: 'or_sign' },
+                        { type: 'approval', role: '业委会主任', approvers: [], approvalType: 'or_sign' },
+                        { type: 'notification', role: '申请人', approvers: [] }
+                    ]
+                }
+            };
+            
+            return templateMapping[id] || null;
+        }
+        
+
+
+        // ==================== 表单配置相关函数 ====================
+        
+        // 富文本编辑器实例
+        let formEditor;
+        
+        /**
+         * 初始化富文本编辑器
+         */
+        function initFormEditor() {
+            // 等待富文本编辑器组件加载完成后初始化
+            if (window.RichTextEditor && window.RichTextEditor.init) {
+                window.RichTextEditor.init();
+                formEditor = window.RichTextEditor.getInstance();
+                console.log('富文本编辑器初始化完成');
+            } else {
+                // 如果组件还未加载，延迟初始化
+                setTimeout(initFormEditor, 100);
+            }
+        }
+        
+
+        
+        /**
+         * 获取表单内容
+         */
+        function getFormContent() {
+            if (window.RichTextEditor && window.RichTextEditor.getContent) {
+                const editorData = window.RichTextEditor.getContent();
+                // 返回内容部分，忽略标题
+                return editorData.content || '';
+            }
+            return formEditor ? formEditor.root.innerHTML : '';
+        }
+        
+        /**
+         * 设置表单内容
+         */
+        function setFormContent(content) {
+            if (window.RichTextEditor && window.RichTextEditor.setContent) {
+                // 设置内容，不设置标题
+                window.RichTextEditor.setContent('', content || '');
+            } else if (formEditor) {
+                formEditor.root.innerHTML = content || '';
+            }
+        }
+        
+        /**
+         * 预定义的后台流程模板数据
+         */
+        const backendProcessTemplates = {
+            general: {
+                formContent: `<h3>通用申批表</h3>
+<p><strong>申请人姓名：</strong>_______________</p>
+<p><strong>联系电话：</strong>_______________</p>
+<p><strong>申请事项：</strong>_______________</p>
+<p><strong>申请理由：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>相关附件：</strong>□已提供 □未提供</p>
+<p><strong>申请日期：</strong>_______________</p>`,
+                steps: [
+                    { type: 'approval', role: '物业管理员', approvers: [], approvalType: 'or_sign' },
+                    { type: 'notification', role: '申请人', approvers: [] }
+                ]
+            },
+            expense: {
+                formContent: `<p><strong>支出用途：</strong></p>
+<p><strong>申请金额：</strong></p>
+<p><strong>支付账户：</strong></p>
+<p><strong>收款方：</strong></p>
+<p><strong>收款账号：</strong></p>`,
+                steps: [
+                    { type: 'approval', role: '财务负责人', approvers: [], approvalType: 'or_sign' },
+                    { type: 'approval', role: '业委会主任', approvers: [], approvalType: 'or_sign' },
+                    { type: 'notification', role: '申请人', approvers: [] }
+                ]
+            },
+            seal: {
+                formContent: `<p><strong>用印事由：</strong></p>
+<p><strong>印章类型：</strong></p>`,
+                steps: [
+                    { type: 'approval', role: '物业管理员', approvers: [], approvalType: 'or_sign' },
+                    { type: 'approval', role: '业委会主任', approvers: [], approvalType: 'or_sign' },
+                    { type: 'notification', role: '申请人', approvers: [] }
+                ]
+            },
+            announcement: {
+                formContent: `<h3>公告发布申请</h3>
+<p><strong>公告标题：</strong>_______________</p>
+<p><strong>公告内容：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>发布范围：</strong>□全体业主 □部分业主</p>
+<p><strong>发布时间：</strong>_______________</p>
+<p><strong>有效期至：</strong>_______________</p>
+<p><strong>申请人：</strong>_______________</p>`,
+                steps: [
+                    { type: 'approval', role: '物业管理员', approvers: [], approvalType: 'or_sign' },
+                    { type: 'approval', role: '业委会主任', approvers: [], approvalType: 'and_sign' },
+                    { type: 'notification', role: '全体业主', approvers: [] }
+                ]
+            },
+            survey: {
+                formContent: `<h3>问卷发布申请</h3>
+<p><strong>问卷标题：</strong>_______________</p>
+<p><strong>问卷说明：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>目标人群：</strong>□全体业主 □部分业主</p>
+<p><strong>截止时间：</strong>_______________</p>
+<p><strong>问卷类型：</strong>□意见征集 □满意度调查 □其他</p>
+<p><strong>申请人：</strong>_______________</p>`,
+                steps: [
+                    { type: 'approval', role: '业委会主任', approvers: [], approvalType: 'or_sign' },
+                    { type: 'approval', role: '业委会成员', approvers: [], approvalType: 'and_sign' },
+                    { type: 'notification', role: '全体业主', approvers: [] }
+                ]
+            },
+            news: {
+                formContent: `<h3>动态发布申请</h3>
+<p><strong>动态标题：</strong>_______________</p>
+<p><strong>动态内容：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>发布时间：</strong>_______________</p>
+<p><strong>相关图片：</strong>□已提供 □未提供</p>
+<p><strong>动态类型：</strong>□小区新闻 □活动通知 □其他</p>
+<p><strong>申请人：</strong>_______________</p>`,
+                steps: [
+                    { type: 'approval', role: '物业管理员', approvers: [], approvalType: 'or_sign' },
+                    { type: 'notification', role: '全体业主', approvers: [] }
+                ]
+            },
+            notification: {
+                formContent: `<h3>通知发布申请</h3>
+<p><strong>通知标题：</strong>_______________</p>
+<p><strong>通知内容：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>通知类型：</strong>□紧急通知 □一般通知 □温馨提示</p>
+<p><strong>紧急程度：</strong>□紧急 □重要 □一般</p>
+<p><strong>生效时间：</strong>_______________</p>
+<p><strong>申请人：</strong>_______________</p>`,
+                steps: [
+                    { type: 'approval', role: '物业管理员', approvers: [], approvalType: 'or_sign' },
+                    { type: 'approval', role: '业委会主任', approvers: [], approvalType: 'or_sign' },
+                    { type: 'notification', role: '全体业主', approvers: [] }
+                ]
+            },
+            suggestion: {
+                formContent: `<h3>小区建议申请</h3>
+<p><strong>建议类型：</strong>□设施改进 □服务优化 □管理建议 □其他</p>
+<p><strong>建议内容：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>建议人：</strong>_______________</p>
+<p><strong>联系方式：</strong>_______________</p>
+<p><strong>期望改进方案：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>提交日期：</strong>_______________</p>`,
+                steps: [
+                    { type: 'approval', role: '物业管理员', approvers: [], approvalType: 'or_sign' },
+                    { type: 'approval', role: '业委会主任', approvers: [], approvalType: 'and_sign' },
+                    { type: 'approval', role: '业委会成员', approvers: [], approvalType: 'or_sign' },
+                    { type: 'notification', role: '全体业主', approvers: [] }
+                ]
+            },
+            repair: {
+                formContent: `<h3>报事报修申请</h3>
+<p><strong>维修位置：</strong>_______________</p>
+<p><strong>故障描述：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>联系人：</strong>_______________</p>
+<p><strong>联系电话：</strong>_______________</p>
+<p><strong>紧急程度：</strong>□紧急 □一般 □不急</p>
+<p><strong>最佳联系时间：</strong>_______________</p>
+<p><strong>申请日期：</strong>_______________</p>`,
+                steps: [
+                    { type: 'approval', role: '物业管理员', approvers: [], approvalType: 'or_sign' },
+                    { type: 'notification', role: '业委会成员', approvers: [] }
+                ]
+            },
+            event: {
+                formContent: `<h3>事件管理申请</h3>
+<p><strong>事件类型：</strong>□突发事件 □安全事故 □设备故障 □其他</p>
+<p><strong>事件描述：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>发生时间：</strong>_______________</p>
+<p><strong>影响范围：</strong>_______________</p>
+<p><strong>紧急程度：</strong>□紧急 □重要 □一般</p>
+<p><strong>处理措施：</strong></p>
+<p>_______________________________________________</p>
+<p><strong>报告人：</strong>_______________</p>`,
+                steps: [
+                    { type: 'approval', role: '物业管理员', approvers: [], approvalType: 'or_sign' },
+                    { type: 'approval', role: '业委会主任', approvers: [], approvalType: 'meeting_sign' },
+                    { type: 'approval', role: '业委会成员', approvers: [], approvalType: 'and_sign' },
+                    { type: 'notification', role: '财务负责人', approvers: [] },
+                    { type: 'notification', role: '全体业主', approvers: [] }
+                ]
+            }
+        };
+        
+
+        
+        /**
+         * 清空所有步骤
+         */
+        function clearAllSteps() {
+            steps = [];
+            stepCounter = 0;
+            const stepsContainer = document.getElementById('stepsContainer');
+            if (stepsContainer) {
+                stepsContainer.innerHTML = '';
+            }
+        }
+        
+        /**
+         * 从模板添加步骤
+         */
+        function addStepFromTemplate(templateStep) {
+            stepCounter++;
+            const stepId = 'step_' + stepCounter;
+            
+            const newStep = {
+                id: stepId,
+                type: templateStep.type,
+                stepName: templateStep.stepName || (templateStep.type === 'approval' ? '审批步骤' : '抄送步骤'),
+                role: templateStep.role,
+                approvers: [...templateStep.approvers],
+                approvalType: templateStep.approvalType || 'or_sign'
+            };
+            
+            steps.push(newStep);
+            renderStep(newStep);
+        }
+        
+        // ==================== 流程步骤相关函数 ====================
+        
+        /**
+         * 添加步骤
+         * @param {string} type - 步骤类型：approval（审批）或 notification（通知）
+         */
+        function addStep(type) {
+            stepCounter++;
+            const stepId = `step_${stepCounter}`;
+            
+            const stepData = {
+                id: stepId,
+                type: type,
+                stepName: type === 'approval' ? '审批步骤' : '抄送步骤',
+                role: '', // 保持兼容性，用于当前选择的角色
+                approvers: [], // 保持兼容性
+                roleGroups: [], // 新增：按角色分组的人员列表 [{role: string, approvers: []}]
+                approvalType: type === 'approval' ? 'or_sign' : 'notification'
+            };
+            
+            steps.push(stepData);
+            renderStep(stepData);
+            updateEmptyState();
+        }
+
+        /**
+         * 从数据添加步骤（用于编辑模式）
+         */
+        function addStepFromData(stepData) {
+            stepCounter++;
+            const stepId = `step_${stepCounter}`;
+            stepData.id = stepId;
+            
+            // 确保包含步骤名称字段
+            if (!stepData.stepName) {
+                stepData.stepName = stepData.type === 'approval' ? '审批步骤' : '抄送步骤';
+            }
+            
+            // 兼容旧数据结构：如果没有 roleGroups，从 role 和 approvers 创建
+            if (!stepData.roleGroups) {
+                stepData.roleGroups = [];
+                if (stepData.role && stepData.approvers && stepData.approvers.length > 0) {
+                    stepData.roleGroups.push({
+                        role: stepData.role,
+                        approvers: [...stepData.approvers]
+                    });
+                }
+            }
+            
+            steps.push(stepData);
+            renderStep(stepData);
+            updateEmptyState();
+        }
+
+        /**
+         * 渲染步骤
+         * @param {Object} stepData - 步骤数据
+         */
+        function renderStep(stepData) {
+            const container = document.getElementById('stepsContainer');
+            const stepElement = document.createElement('div');
+            stepElement.className = 'step-item bg-gray-50 border border-gray-200 rounded-lg p-4';
+            stepElement.id = stepData.id;
+            
+            const stepNumber = steps.length;
+            const isApproval = stepData.type === 'approval';
+            const stepTypeText = isApproval ? '审批步骤' : '抄送步骤';
+            const stepIcon = isApproval ? 'fa-check-circle' : 'fa-bell';
+            const stepColor = isApproval ? 'blue' : 'green';
+            
+            stepElement.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="drag-handle mr-3 text-gray-400 hover:text-blue-600 cursor-move">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="w-8 h-8 bg-${stepColor}-100 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas ${stepIcon} text-${stepColor}-600 text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h4 class="font-medium text-gray-900">第${stepNumber}步：</h4>
+                                <input type="text" 
+                                       value="${stepData.stepName || stepTypeText}"
+                                       onchange="updateStepData('${stepData.id}', 'stepName', this.value)"
+                                       placeholder="请输入步骤名称"
+                                       class="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <p class="text-sm text-gray-500">${isApproval ? '需要审批通过才能进入下一步' : '通知相关人员，无需审批'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="moveStepUp('${stepData.id}')" class="text-gray-400 hover:text-gray-600" title="上移">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button onclick="moveStepDown('${stepData.id}')" class="text-gray-400 hover:text-gray-600" title="下移">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <button onclick="removeStep('${stepData.id}')" class="text-red-400 hover:text-red-600" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">${isApproval ? '审批角色' : '抄送角色'}</label>
+                        <select id="role_${stepData.id}" onchange="updateRoleAndApprovers('${stepData.id}', this.value)" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">请选择角色</option>
+                            <option value="业委会成员" ${stepData.role === '业委会成员' ? 'selected' : ''}>业委会成员</option>
+                            <option value="物业成员" ${stepData.role === '物业成员' ? 'selected' : ''}>物业成员</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">${isApproval ? '-' : '-'}</label>
+                        <div class="flex gap-2">
+                            <button onclick="addRoleOnly('${stepData.id}')" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm whitespace-nowrap">
+                                添加角色
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">各小区可根据实际情况选择具体人员，点击添加角色仅添加角色信息</p>
+                    </div>
+                </div>
+                
+                <!-- 已选人员区域 - 单独一行 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">已选角色</label>
+                    <p class="text-xs text-gray-500 mb-2">${isApproval ? '注意：审批步骤只能选择一个角色。' : '注意：抄送步骤可以选择多个角色。'}</p>
+                    <div id="approvers_${stepData.id}" class="min-h-[42px] p-3 border border-gray-200 rounded-lg bg-gray-50 overflow-y-auto">
+                        <div class="text-gray-400 text-sm text-center py-2">
+                            请先选择角色
+                        </div>
+                    </div>
+                    
+                    ${isApproval ? `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">审批类型</label>
+                        <select id="approvalType_${stepData.id}" onchange="updateStepData('${stepData.id}', 'approvalType', this.value)" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="or_sign" ${stepData.approvalType === 'or_sign' ? 'selected' : ''}>或签（一名成员同意即可）</option>
+                            <option value="and_sign" ${stepData.approvalType === 'and_sign' ? 'selected' : ''}>会签（须所有成员同意）</option>
+                            <option value="majority_sign" ${stepData.approvalType === 'majority_sign' ? 'selected' : ''}>过半审批（需要过半的成员同意）</option>
+                            <option value="sequential_sign" ${stepData.approvalType === 'sequential_sign' ? 'selected' : ''}>依次审批（按顺序依次审批）</option>
+                        </select>
+                        
+                        <!-- 流程评论配置 -->
+                        <div class="mt-4">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="commentRequired_${stepData.id}" 
+                                       onchange="updateStepData('${stepData.id}', 'commentRequired', this.checked)"
+                                       ${stepData.commentRequired ? 'checked' : ''}
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="commentRequired_${stepData.id}" class="ml-2 block text-sm font-medium text-gray-700">
+                                    流程理由是否必填
+                                </label>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500">勾选后，用户在此步骤提交时必须填写理由</p>
+                        </div>
+                    </div>
+                    ` : '<div></div>'}
+                </div>
+            `;
+            
+            container.appendChild(stepElement);
+            
+            // 如果步骤已有角色，初始化对应的审批人选项
+            if (stepData.role) {
+                setTimeout(() => {
+                    updateRoleAndApprovers(stepData.id, stepData.role);
+                }, 0);
+            }
+            
+            // 渲染已选人员列表（支持多角色分组）
+            setTimeout(() => {
+                renderApproversList(stepData.id);
+            }, 0);
+        }
+
+        /**
+         * 更新步骤数据
+         */
+        function updateStepData(stepId, field, value) {
+            const step = steps.find(s => s.id === stepId);
+            if (step) {
+                step[field] = value;
+            }
+        }
+        
+        /**
+         * 更新角色选择 - 按步骤类型应用不同的角色限制
+         */
+        function updateRoleAndApprovers(stepId, roleValue) {
+            const step = steps.find(s => s.id === stepId);
+            if (!step) return;
+            
+            const isApproval = step.type === 'approval';
+            
+            // 审批步骤：检查是否已经有人员，如果有且不是当前角色，则不允许切换
+            if (isApproval && step.roleGroups && step.roleGroups.length > 0) {
+                const existingRole = step.roleGroups[0].role;
+                if (existingRole !== roleValue && roleValue !== '') {
+                    alert(`该审批步骤已有${existingRole}的角色，审批步骤只能选择一个角色。如需更换角色，请先清空已选角色。`);
+                    // 恢复到原来的角色
+                    const roleSelect = document.getElementById(`role_${stepId}`);
+                    if (roleSelect) {
+                        roleSelect.value = existingRole;
+                    }
+                    return;
+                }
+            }
+            
+            // 更新步骤数据中的角色
+            updateStepData(stepId, 'role', roleValue);
+            
+            // 更新已选人员显示区域
+            renderApproversList(stepId);
+        }
+
+        /**
+         * 添加角色（只添加角色，不添加具体人员）
+         */
+        function addRoleOnly(stepId) {
+            const step = steps.find(s => s.id === stepId);
+            if (!step) return;
+            
+            // 获取当前选择的角色
+            const roleSelect = document.getElementById(`role_${stepId}`);
+            if (!roleSelect || !roleSelect.value) {
+                alert('请先选择角色');
+                return;
+            }
+            
+            const currentRole = roleSelect.value;
+            const isApproval = step.type === 'approval';
+            
+            // 审批步骤：检查是否已经有其他角色的人员，如果有则不允许添加
+            if (isApproval && step.roleGroups && step.roleGroups.length > 0) {
+                const existingRole = step.roleGroups[0].role;
+                if (existingRole !== currentRole) {
+                    alert(`该审批步骤已添加${existingRole}，审批步骤只能选择一个角色。如需更换角色，请先清空已选角色。`);
+                    return;
+                }
+            }
+            
+            // 确保 roleGroups 存在
+            if (!step.roleGroups) {
+                step.roleGroups = [];
+            }
+            
+            // 查找当前角色的分组
+            let roleGroup = step.roleGroups.find(group => group.role === currentRole);
+            if (!roleGroup) {
+                roleGroup = { role: currentRole, approvers: [] };
+                step.roleGroups.push(roleGroup);
+                
+                // 更新兼容性字段（保持向后兼容）
+                step.role = currentRole;
+                if (!step.approvers) {
+                    step.approvers = [];
+                }
+                
+                // 更新显示
+                renderApproversList(stepId);
+            } else {
+                alert(`${currentRole}已经添加过了`);
+            }
+        }
+
+        /**
+         * 添加审批人（保留原函数以兼容旧代码）
+         */
+        function addApprover(stepId) {
+            const approverSelect = document.getElementById(`approver_${stepId}`);
+            const approverId = approverSelect.value;
+            const approverText = approverSelect.options[approverSelect.selectedIndex].text;
+            
+            if (!approverId) {
+                alert('请选择审批人');
+                return;
+            }
+            
+            const step = steps.find(s => s.id === stepId);
+            if (!step || !step.role) {
+                alert('请先选择角色');
+                return;
+            }
+            
+            // 确保 roleGroups 存在
+            if (!step.roleGroups) {
+                step.roleGroups = [];
+            }
+            
+            // 查找当前角色的分组
+            let roleGroup = step.roleGroups.find(group => group.role === step.role);
+            
+            // 如果该角色分组不存在，创建新的分组
+            if (!roleGroup) {
+                roleGroup = {
+                    role: step.role,
+                    approvers: []
+                };
+                step.roleGroups.push(roleGroup);
+            }
+            
+            // 检查该人员是否已经在当前角色分组中
+            if (!roleGroup.approvers.find(a => a.id === approverId)) {
+                // 存储审批人的ID和显示名称
+                roleGroup.approvers.push({ id: approverId, name: approverText });
+                
+                // 同时更新兼容性字段
+                if (!step.approvers.find(a => a.id === approverId)) {
+                    step.approvers.push({ id: approverId, name: approverText });
+                }
+                
+                // 重新渲染已选人员列表
+                renderApproversList(stepId);
+                
+                approverSelect.value = '';
+            }
+        }
+
+        /**
+         * 移除审批人
+         */
+        function removeApprover(stepId, approverId) {
+            const step = steps.find(s => s.id === stepId);
+            if (step) {
+                // 从所有角色分组中移除该人员
+                if (step.roleGroups) {
+                    step.roleGroups.forEach(roleGroup => {
+                        roleGroup.approvers = roleGroup.approvers.filter(approver => approver.id !== approverId);
+                    });
+                    
+                    // 移除空的角色分组
+                    step.roleGroups = step.roleGroups.filter(roleGroup => roleGroup.approvers.length > 0);
+                }
+                
+                // 同时更新兼容性字段
+                step.approvers = step.approvers.filter(approver => approver.id !== approverId);
+                
+                // 重新渲染已选人员列表
+                renderApproversList(stepId);
+            }
+        }
+        
+        /**
+         * 清空所有审批人（新增功能）
+         */
+        function clearAllApprovers(stepId) {
+            if (confirm('确定要清空该步骤的所有角色吗？清空后可以重新选择角色。')) {
+                const step = steps.find(s => s.id === stepId);
+                if (step) {
+                    // 清空所有角色分组
+                    step.roleGroups = [];
+                    step.approvers = [];
+                    step.role = '';
+                    
+                    // 重置角色选择器
+                    const roleSelect = document.getElementById(`role_${stepId}`);
+                    if (roleSelect) {
+                        roleSelect.value = '';
+                    }
+                    
+                    // 重新初始化下拉框
+                    updateRoleAndApprovers(stepId, '');
+                    
+                    // 重新渲染已选人员列表
+                    renderApproversList(stepId);
+                }
+            }
+        }
+        
+        /**
+         * 清空特定角色的所有人员（用于抄送步骤）
+         */
+        function removeRoleGroup(stepId, roleToRemove) {
+            if (confirm(`确定要清空${roleToRemove}这个角色吗？`)) {
+                const step = steps.find(s => s.id === stepId);
+                if (step && step.roleGroups) {
+                    // 从角色分组中移除指定角色
+                    step.roleGroups = step.roleGroups.filter(group => group.role !== roleToRemove);
+                    
+                    // 同步更新兼容性字段
+                    if (step.roleGroups.length > 0) {
+                        // 如果还有其他角色，使用第一个角色作为主角色
+                        const firstGroup = step.roleGroups[0];
+                        step.role = firstGroup.role;
+                        step.approvers = [...firstGroup.approvers];
+                    } else {
+                        // 如果没有角色了，清空所有相关字段
+                        step.role = '';
+                        step.approvers = [];
+                    }
+                    
+                    // 重新渲染已选人员列表
+                    renderApproversList(stepId);
+                }
+            }
+        }
+
+        /**
+         * 渲染已选人员列表 - 按步骤类型显示不同的人员列表格式
+         */
+        function renderApproversList(stepId) {
+             const step = steps.find(s => s.id === stepId);
+             const approversContainer = document.getElementById(`approvers_${stepId}`);
+             const isApproval = step.type === 'approval';
+             
+             if (!step.roleGroups || step.roleGroups.length === 0) {
+                 // 没有选择任何角色时的显示
+                 approversContainer.innerHTML = `
+                     <div class="text-gray-400 text-sm text-center py-2">
+                         请先选择角色
+                     </div>
+                 `;
+                 return;
+             }
+             
+             if (isApproval) {
+                 // 审批步骤：只显示第一个角色（因为限制为只能有一个角色）
+                 const roleGroup = step.roleGroups[0];
+                 
+                 const roleGroupHtml = `
+                     <div class="flex flex-wrap items-center gap-2 py-1">
+                         <span class="text-gray-700 text-sm font-medium">角色：</span>
+                         <span class="inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
+                             ${roleGroup.role}
+                             <button onclick="clearAllApprovers('${stepId}')" class="ml-2 text-green-600 hover:text-green-800" title="清空角色">
+                                 <i class="fas fa-times text-xs"></i>
+                             </button>
+                         </span>
+                     </div>
+                 `;
+                 
+                 approversContainer.innerHTML = roleGroupHtml;
+             } else {
+                 // 抄送步骤：按角色分组显示，每个角色占一行，允许多个角色
+                 const roleGroupsHtml = step.roleGroups.map(roleGroup => {
+                     return `
+                         <div class="flex flex-wrap items-center gap-2 py-1 border-b border-gray-100 last:border-b-0">
+                             <span class="text-gray-700 text-sm font-medium">角色：</span>
+                             <span class="inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
+                                 ${roleGroup.role}
+                                 <button onclick="removeRoleGroup('${stepId}', '${roleGroup.role}')" class="ml-2 text-green-600 hover:text-green-800" title="清空该角色">
+                                     <i class="fas fa-times text-xs"></i>
+                                 </button>
+                             </span>
+                         </div>
+                     `;
+                 }).join('');
+                 
+                 approversContainer.innerHTML = roleGroupsHtml + `
+                     <div class="mt-2 pt-2 border-t border-gray-200">
+                         <button onclick="clearAllApprovers('${stepId}')" class="text-xs text-gray-500 hover:text-red-600 flex items-center">
+                             <i class="fas fa-trash mr-1"></i>清空所有角色
+                         </button>
+                     </div>
+                 `;
+             }
+         }
+
+        /**
+         * 上移步骤
+         */
+        function moveStepUp(stepId) {
+            const stepIndex = steps.findIndex(s => s.id === stepId);
+            if (stepIndex > 0) {
+                [steps[stepIndex], steps[stepIndex - 1]] = [steps[stepIndex - 1], steps[stepIndex]];
+                reRenderSteps();
+            }
+        }
+
+        /**
+         * 下移步骤
+         */
+        function moveStepDown(stepId) {
+            const stepIndex = steps.findIndex(s => s.id === stepId);
+            if (stepIndex < steps.length - 1) {
+                [steps[stepIndex], steps[stepIndex + 1]] = [steps[stepIndex + 1], steps[stepIndex]];
+                reRenderSteps();
+            }
+        }
+
+        /**
+         * 删除步骤
+         */
+        function removeStep(stepId) {
+            if (confirm('确定要删除这个步骤吗？')) {
+                steps = steps.filter(s => s.id !== stepId);
+                document.getElementById(stepId).remove();
+                updateEmptyState();
+                reRenderSteps();
+            }
+        }
+
+        /**
+         * 重新渲染所有步骤
+         */
+        function reRenderSteps() {
+            const container = document.getElementById('stepsContainer');
+            container.innerHTML = '';
+            
+            steps.forEach(stepData => {
+                renderStep(stepData);
+            });
+        }
+
+        /**
+         * 更新空状态显示
+         */
+        function updateEmptyState() {
+            const emptyState = document.getElementById('emptyState');
+            emptyState.style.display = steps.length === 0 ? 'block' : 'none';
+        }
+
+        /**
+         * 保存模板
+         */
+        function saveTemplate() {
+            const templateName = document.getElementById('templateName').value;
+            const formContent = getFormContent(); // 获取富文本编辑器内容
+
+            
+            if (!templateName) {
+                alert('请输入流程名称');
+                return;
+            }
+            
+
+            if (!formContent || formContent.trim() === '<p><br></p>' || formContent.trim() === '') {
+                alert('请输入表单内容');
+                return;
+            }
+            
+            if (steps.length === 0) {
+                alert('请至少添加一个流程步骤');
+                return;
+            }
+            
+            // 验证每个步骤的完整性
+            for (let step of steps) {
+                if (!step.role) {
+                    alert('请为所有步骤选择角色');
+                    return;
+                }
+                if (step.approvers.length === 0) {
+                    alert('请为所有步骤添加审批人或抄送人');
+                    return;
+                }
+            }
+            
+            const templateData = {
+                name: templateName,
+                description: '',
+                formContent: formContent, // 保存富文本内容
+                steps: steps
+            };
+            
+            console.log('保存模板数据:', templateData);
+            alert('模板保存成功！');
+            
+            // 返回模板列表页面
+            window.location.href = 'process-template.html';
+        }
+
+        /**
+         * 预览模板
+         */
+        function previewTemplate() {
+            console.log('预览函数被调用');
+            const templateNameEl = document.getElementById('templateName');
+            const backendProcessEl = document.getElementById('backendProcess');
+            
+            const templateName = templateNameEl ? templateNameEl.value : '';
+            const backendProcess = backendProcessEl ? backendProcessEl.value : '';
+            const templateDescription = ''; // 当前页面没有描述字段
+            const formContent = getFormContent(); // 获取富文本编辑器内容
+            
+            console.log('模板名称:', templateName);
+            console.log('步骤数量:', steps.length);
+            
+            if (!templateName) {
+                alert('请先输入流程名称');
+                return;
+            }
+            
+            if (!formContent || formContent.trim() === '<p><br></p>' || formContent.trim() === '') {
+                alert('请先输入表单内容');
+                return;
+            }
+            
+            if (steps.length === 0) {
+                alert('请至少添加一个流程步骤');
+                return;
+            }
+            
+            try {
+                generatePreviewContent(templateName, backendProcess, templateDescription, formContent);
+                const modal = document.getElementById('previewModal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    console.log('预览模态框已显示');
+                } else {
+                    console.error('找不到预览模态框元素');
+                }
+            } catch (error) {
+                console.error('预览生成错误:', error);
+                alert('预览生成失败，请检查控制台错误信息');
+            }
+        }
+
+        /**
+         * 生成预览内容
+         */
+        function generatePreviewContent(templateName, backendProcess, templateDescription, formContent) {
+            const previewContent = document.getElementById('previewContent');
+            
+            // 获取后台流程名称
+            const backendProcessNames = {
+                'general': '通用申批',
+                'expense': '支出申请',
+                'seal': '用印申请',
+                'announcement': '公告管理',
+                'survey': '发布问卷',
+                'news': '发布动态',
+                'notification': '通知管理',
+                'suggestion': '小区建议',
+                'repair': '报事报修',
+                'event': '事件管理'
+            };
+            
+            const backendProcessName = backendProcessNames[backendProcess] || backendProcess;
+            
+            // 基本信息
+            let previewHTML = `
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-3">基本信息</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600">流程名称：</span>
+                            <span class="font-medium">${templateName}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">引用后台流程：</span>
+                            <span class="font-medium">${backendProcessName}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white border rounded-lg p-4 mb-4">
+                    <h4 class="font-medium text-gray-900 mb-4">表单内容</h4>
+                    <div class="prose max-w-none">
+                        ${formContent}
+                    </div>
+                </div>
+                
+                <div class="bg-white border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-4">流程步骤</h4>
+                    <div class="space-y-4">
+            `;
+            
+            // 流程步骤
+            steps.forEach((step, index) => {
+                const isApproval = step.type === 'approval';
+                const stepIcon = isApproval ? 'fa-check-circle' : 'fa-bell';
+                const stepColorClasses = isApproval ? {
+                    bg: 'bg-blue-100',
+                    text: 'text-blue-600',
+                    badge: 'bg-blue-100 text-blue-800'
+                } : {
+                    bg: 'bg-green-100',
+                    text: 'text-green-600',
+                    badge: 'bg-green-100 text-green-800'
+                };
+                const stepTypeText = isApproval ? '审批步骤' : '抄送步骤';
+                
+                // 获取审批类型中文名称
+                const approvalTypeNames = {
+                    'or_sign': '或签',
+                    'and_sign': '会签',
+                    'majority_sign': '过半审批',
+                    'sequential_sign': '依次审批',
+                    'notification': '抄送'
+                };
+                
+                // 对于抄送步骤，直接显示"抄送"，对于审批步骤显示具体类型
+                const approvalTypeName = isApproval ? 
+                    (approvalTypeNames[step.approvalType] || step.approvalType || '审批') : 
+                    '抄送';
+                
+                previewHTML += `
+                    <div class="flex items-start space-x-4">
+                        <!-- 步骤图标 -->
+                        <div class="flex flex-col items-center">
+                            <div class="w-10 h-10 ${stepColorClasses.bg} rounded-full flex items-center justify-center">
+                                <i class="fas ${stepIcon} ${stepColorClasses.text}"></i>
+                            </div>
+                            ${index < steps.length - 1 ? `
+                            <div class="w-0.5 h-8 bg-gray-300 mt-2"></div>
+                            ` : ''}
+                        </div>
+                        
+                        <!-- 步骤内容 -->
+                        <div class="flex-1 pb-8">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h5 class="font-medium text-gray-900">第${index + 1}步：${step.stepName || stepTypeText}</h5>
+                                    <span class="px-2 py-1 ${stepColorClasses.badge} text-xs rounded-full">
+                                        ${approvalTypeName}
+                                    </span>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-600">${isApproval ? '审批角色' : '抄送角色'}：</span>
+                                        <span class="font-medium">${step.role || '未设置'}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600">${isApproval ? '审批人' : '抄送人'}：</span>
+                                        <span class="font-medium">
+                                            ${step.approvers.length > 0 ? step.approvers.join('、') : '未设置'}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                ${isApproval ? `
+                                <div class="mt-3 text-sm text-gray-600">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    ${getApprovalTypeDescription(step.approvalType)}
+                                </div>
+                                ${step.commentRequired ? `
+                                <div class="mt-2 text-sm text-orange-600">
+                                    <i class="fas fa-comment-alt mr-1"></i>
+                                    此步骤评论必填
+                                </div>
+                                ` : ''}
+                                ` : `
+                                <div class="mt-3 text-sm text-gray-600">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    抄送相关人员，无需审批
+                                </div>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            previewHTML += `
+                    </div>
+                </div>
+                
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-check text-green-600"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-green-900">流程结束</h5>
+                            <p class="text-sm text-green-700">所有步骤完成后，流程自动结束</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            previewContent.innerHTML = previewHTML;
+        }
+
+        /**
+         * 获取审批类型描述
+         */
+        function getApprovalTypeDescription(approvalType) {
+            const descriptions = {
+                'or_sign': '一名成员同意即可通过',
+                'and_sign': '须所有成员同意才能通过',
+                'majority_sign': '需要过半的成员同意才能通过',
+                'sequential_sign': '按顺序依次审批，每个人依次处理',
+                'notification': '仅作抄送通知，无需审批'
+            };
+            return descriptions[approvalType] || '未知审批类型';
+        }
+
+        /**
+         * 关闭预览模态框
+         */
+        function closePreview() {
+            document.getElementById('previewModal').classList.add('hidden');
+            
+            // 如果是预览模式，关闭后返回相应的来源页面
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const source = urlParams.get('source');
+            
+            if (mode === 'preview') {
+                if (source === 'template-config') {
+                    // 返回template-config.html的流程模板tab页
+                    window.location.href = 'template-config.html#process';
+                } else {
+                    // 默认返回template-config.html
+                    window.location.href = 'template-config.html';
+                }
+            }
+        }
+
+        /**
+         * 启用预览模式
+         * 停用所有编辑功能，使页面变为只读状态
+         */
+        function enablePreviewMode() {
+            console.log('启用预览模式');
+            
+            // 停用基本信息输入框
+            const templateName = document.getElementById('templateName');
+            const backendProcess = document.getElementById('backendProcess');
+            
+            if (templateName) templateName.disabled = true;
+            if (backendProcess) backendProcess.disabled = true;
+            
+            // 停用增加步骤按钮
+            const addStepBtn = document.getElementById('addStepBtn');
+            if (addStepBtn) addStepBtn.style.display = 'none';
+            
+            // 停用所有步骤的编辑功能
+            const stepItems = document.querySelectorAll('.step-item');
+            console.log('找到步骤数量:', stepItems.length);
+            
+            stepItems.forEach((stepItem, index) => {
+                console.log('处理步骤', index + 1);
+                
+                // 停用步骤操作按钮（上移、下移、删除）
+                const actionBtns = stepItem.querySelectorAll('button');
+                actionBtns.forEach(btn => {
+                    if (btn.onclick && (btn.onclick.toString().includes('moveStep') || btn.onclick.toString().includes('removeStep'))) {
+                        btn.style.display = 'none';
+                    }
+                });
+                
+                // 停用所有输入框和选择框
+                const inputs = stepItem.querySelectorAll('input, select');
+                inputs.forEach(input => input.disabled = true);
+                
+                // 停用增加审批人/通知人按钮
+                const addPersonBtns = stepItem.querySelectorAll('button');
+                addPersonBtns.forEach(btn => {
+                    if (btn.onclick && btn.onclick.toString().includes('addApprover')) {
+                        btn.style.display = 'none';
+                    }
+                });
+                
+                // 停用人员删除按钮
+                const removePersonBtns = stepItem.querySelectorAll('button');
+                removePersonBtns.forEach(btn => {
+                    if (btn.onclick && btn.onclick.toString().includes('removeApprover')) {
+                        btn.style.display = 'none';
+                    }
+                });
+                
+                // 停用拖拽手柄
+                const dragHandles = stepItem.querySelectorAll('.drag-handle');
+                dragHandles.forEach(handle => handle.style.display = 'none');
+            });
+            
+            // 修改页面标题
+            const title = document.querySelector('h1');
+            if (title) title.textContent = '预览流程模板';
+            
+            // 修改按钮组
+            const actionButtons = document.querySelector('.flex.space-x-4');
+            if (actionButtons) {
+                actionButtons.innerHTML = `
+                    <button onclick="window.history.back()" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        返回
+                    </button>
+                `;
+            }
+            
+            // 停用拖拽排序
+            if (window.stepsSortable) {
+                window.stepsSortable.option('disabled', true);
+            }
+            
+            console.log('预览模式启用完成');
+        }
+
+        /**
+         * 返回上一页
+         */
+        function goBack() {
+            if (confirm('确定要离开吗？未保存的更改将丢失。')) {
+                window.location.href = 'template-config.html';
+            }
+        }
+    </script>
+    
+    <!-- 引入富文本编辑器组件 -->
+    <script type="module">
+        import { 
+            initRichTextEditor, 
+            getEditorContent, 
+            setEditorContent, 
+            getQuillInstance 
+        } from './components/rich-text-editor.js';
+        
+        // 将组件函数暴露到全局作用域
+        window.RichTextEditor = {
+            init: initRichTextEditor,
+            getContent: getEditorContent,
+            setContent: setEditorContent,
+            getInstance: getQuillInstance
+        };
+    </script>
+</body>
+</html>

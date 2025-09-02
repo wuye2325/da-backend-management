@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>部门管理 - 大家共治PC中台系统</title>
+    <!-- 关键：先加载layout.js预设样式，再加载Tailwind -->
+    <script src="js/layout.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/top-navigation.js"></script>
+    <script src="js/tab-system.js"></script>
+    <script src="components/toggle-switch.js"></script>
+    <script src="js/search-component.js"></script>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        .modal.show {
+            display: flex !important;
+            opacity: 1;
+        }
+        .modal-content {
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+        .status-badge {
+            transition: all 0.2s ease;
+        }
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation Container -->
+            <div id="top-navigation-container"></div>
+
+            <!-- Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6">
+                <!-- Page Header -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-2">部门管理</h1>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="addDepartmentBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                                <i class="fas fa-plus"></i>
+                                <span>新增部门</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and Filter Section -->
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                    <div class="grid grid-cols-12 gap-2 items-end">
+                        <!-- 状态筛选 -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">状态</label>
+                            <select id="statusFilter" class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                <option value="">全部状态</option>
+                                <option value="enabled">启用</option>
+                                <option value="disabled">停用</option>
+                            </select>
+                        </div>
+                        <!-- 创建时间范围 -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">开始日期</label>
+                            <input type="date" id="startDateFilter" class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="开始日期">
+                        </div>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">结束日期</label>
+                            <input type="date" id="endDateFilter" class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="结束日期">
+                        </div>
+                        <!-- 部门名称搜索 -->
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">部门名称</label>
+                            <input type="text" id="departmentNameFilter" placeholder="搜索部门名称" class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        </div>
+                        <!-- 部门长搜索 -->
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">部门长</label>
+                            <input type="text" id="managerFilter" placeholder="搜索部门长" class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        </div>
+                        <!-- 联系电话搜索 -->
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">联系电话</label>
+                            <input type="text" id="phoneFilter" placeholder="搜索联系电话" class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        </div>
+                        <!-- 备注搜索 -->
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">备注</label>
+                            <input type="text" id="remarksFilter" placeholder="搜索备注" class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        </div>
+                        <!-- 操作按钮 -->
+                        <div class="col-span-1">
+                            <div class="flex gap-2 h-10">
+                                <button id="applyFiltersBtn" class="w-10 h-10 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button id="resetFiltersBtn" class="w-10 h-10 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors flex items-center justify-center">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Department Table -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">部门名称</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">部门长</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">联系电话</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">备注</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+
+                            </tr>
+                        </thead>
+                            <tbody id="departmentTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- 部门数据将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+ <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                        <!-- 左侧：记录信息和分页条数选择器 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div class="text-sm text-gray-500">
+                                显示 <span id="startRecord" class="font-medium">1</span>-<span id="endRecord" class="font-medium">10</span> 条，共 <span id="totalRecords" class="font-medium">0</span> 条记录
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600">每页显示</label>
+                                <select id="pageSize" class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="10" selected>10条</option>
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧：分页控件 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <!-- 页码按钮组 -->
+                            <div class="flex items-center space-x-1">
+                                <!-- 上一页 -->
+                                <button class="prev-btn px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <i class="fas fa-chevron-left mr-1"></i>上一页
+                                </button>
+                                
+                                <!-- 页码按钮 -->
+                                <button class="page-btn px-3 py-1 text-sm bg-blue-600 text-white rounded font-medium">1</button>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">4</button>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">5</button>
+                                <span class="px-2 py-1 text-sm text-gray-500">...</span>
+                                <button class="page-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">16</button>
+                                
+                                <!-- 下一页 -->
+                                <button class="next-btn px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                                    下一页<i class="fas fa-chevron-right ml-1"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- 页码跳转 -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600">跳转到</span>
+                                <input type="number" min="1" max="16" value="1" class="w-16 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <span class="text-sm text-gray-600">页</span>
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add/Edit Department Modal -->
+    <div id="departmentModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 id="modalTitle" class="text-lg font-medium text-gray-900">新增部门</h3>
+            </div>
+            <form id="departmentForm" class="px-6 py-4">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">部门名称 <span class="text-red-500">*</span></label>
+                        <input type="text" id="departmentName" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入部门名称">
+                        <div id="nameError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">部门长</label>
+                        <select id="departmentManager" name="manager" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">请选择部门长</option>
+                            <!-- 用户选项将通过JavaScript动态加载 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">联系电话</label>
+                        <input type="tel" id="departmentPhone" name="phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入联系电话">
+                        <div id="phoneError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">备注</label>
+                        <textarea id="departmentRemark" name="remark" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入备注信息"></textarea>
+                    </div>
+                </div>
+            </form>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-2">
+                <button id="cancelBtn" type="button" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                    取消
+                </button>
+                <button id="saveBtn" type="button" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                    保存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-sm w-full mx-4">
+            <div class="px-6 py-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">确认删除</h3>
+                        <p class="text-sm text-gray-500 mt-1">确定要删除这个部门吗？此操作不可撤销。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-2">
+                <button id="cancelDeleteBtn" type="button" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                    取消
+                </button>
+                <button id="confirmDeleteBtn" type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                    删除
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Modal -->
+    <div id="assignmentModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">部门人员分配</h3>
+            </div>
+            <div class="px-6 py-4">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">可分配人员</h4>
+                        <div class="mb-3 flex gap-2">
+                            <input type="text" id="userSearchInput" placeholder="搜索人员姓名..." 
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                            <button id="searchUserBtn" type="button" class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <button id="resetUserSearchBtn" type="button" class="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors text-sm">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                        </div>
+                        <div class="border border-gray-300 rounded-md h-64 overflow-y-auto">
+                            <div id="availableUsers" class="p-3">
+                                <!-- 可分配用户列表 -->
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">已分配人员</h4>
+                        <div class="border border-gray-300 rounded-md h-64 overflow-y-auto">
+                            <div id="assignedUsers" class="p-3">
+                                <!-- 已分配用户列表 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-2">
+                <button id="cancelAssignmentBtn" type="button" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                    取消
+                </button>
+                <button id="saveAssignmentBtn" type="button" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                    保存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/department-management.js"></script>
+    
+    <!-- 初始化部门管理功能 -->
+    <script>
+        // 全局变量
+        let departmentManager;
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 使用layout.js初始化页面布局
+            initPage('department-management');
+            
+            // 初始化部门管理功能
+            departmentManager = new DepartmentManagement();
+            
+            console.log('部门管理页面初始化完成');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试用户管理数据</title>
+    <script src="js/user-management-data.js"></script>
+</head>
+<body>
+    <h1>测试用户管理数据配置</h1>
+    
+    <h2>用户角色（筛选用）：</h2>
+    <select id="roleFilter">
+        <!-- 将通过JavaScript填充 -->
+    </select>
+    
+    <h2>用户角色（表单用）：</h2>
+    <select id="userRole">
+        <!-- 将通过JavaScript填充 -->
+    </select>
+    
+    <h2>状态：</h2>
+    <select id="statusFilter">
+        <!-- 将通过JavaScript填充 -->
+    </select>
+    
+    <h2>部门：</h2>
+    <select id="userDepartment">
+        <!-- 将通过JavaScript填充 -->
+    </select>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成');
+            
+            // 检查userManagementData是否存在
+            if (typeof userManagementData === 'undefined') {
+                console.error('userManagementData 未定义！');
+                document.body.innerHTML += '<p style="color: red;">错误：userManagementData 未定义！</p>';
+                return;
+            }
+            
+            console.log('userManagementData 已加载:', userManagementData);
+            
+            try {
+                // 测试获取用户角色数据
+                const roleFilterOptions = userManagementData.getUserRolesForFilter();
+                console.log('筛选用角色选项:', roleFilterOptions);
+                
+                const roleFormOptions = userManagementData.getUserRolesForForm();
+                console.log('表单用角色选项:', roleFormOptions);
+                
+                // 填充筛选用角色选项
+                const roleFilter = document.getElementById('roleFilter');
+                roleFilterOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    roleFilter.appendChild(optionElement);
+                });
+                
+                // 填充表单用角色选项
+                const userRole = document.getElementById('userRole');
+                userRole.innerHTML = '<option value="">请选择角色</option>';
+                roleFormOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    userRole.appendChild(optionElement);
+                });
+                
+                // 填充账号状态选项
+                const statusOptions = userManagementData.getAccountStatusForFilter();
+                const statusFilter = document.getElementById('statusFilter');
+                statusOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    statusFilter.appendChild(optionElement);
+                });
+                
+                // 填充部门选项
+                const departmentOptions = userManagementData.getDepartments();
+                const userDepartment = document.getElementById('userDepartment');
+                departmentOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    userDepartment.appendChild(optionElement);
+                });
+                
+                console.log('所有选项已成功填充');
+                document.body.innerHTML += '<p style="color: green;">成功：所有选项已填充！</p>';
+                
+            } catch (error) {
+                console.error('填充选项时出错:', error);
+                document.body.innerHTML += '<p style="color: red;">错误：' + error.message + '</p>';
+            }
+        });
+    </script>
+</body>
+</html>

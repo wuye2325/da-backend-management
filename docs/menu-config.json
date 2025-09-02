@@ -1,0 +1,342 @@
+{
+  "systemName": "大家共治后台管理系统",
+  "version": "1.0",
+  "lastUpdate": "2024-12-26",
+  "menuConfig": {
+    "home": {
+      "id": "home",
+      "title": "首页",
+      "icon": "fas fa-home",
+      "href": "home-dashboard.html",
+      "type": "single",
+      "order": 1,
+      "description": "系统主页，显示关键指标和数据概览",
+      "permissions": ["home:view"]
+    },
+    "authCenter": {
+      "id": "authCenter",
+      "title": "授权中心",
+      "icon": "fas fa-key",
+      "type": "group",
+      "order": 2,
+      "description": "管理小区授权和权限等级相关功能",
+      "permissions": ["auth:view"],
+      "children": {
+        "community": {
+          "id": "community",
+          "title": "小区管理",
+          "icon": "fas fa-building",
+          "href": "community-management.html",
+          "order": 1,
+          "description": "小区信息管理、小区授权配置、小区状态监控、小区数据统计",
+          "permissions": ["auth:community:view"],
+          "features": [
+            "小区信息CRUD",
+            "授权状态管理",
+            "小区数据统计",
+            "批量操作"
+          ]
+        },
+        "authLevel": {
+          "id": "authLevel",
+          "title": "授权等级管理",
+          "icon": "fas fa-layer-group",
+          "href": "authorization-levels.html",
+          "order": 2,
+          "description": "创建和管理授权等级、配置等级权限、等级分配管理",
+          "permissions": ["auth:level:view"],
+          "features": [
+            "等级创建编辑",
+            "权限配置",
+            "等级分配",
+            "权限模板"
+          ]
+        }
+      }
+    },
+    "templateConfig": {
+      "id": "templateConfig",
+      "title": "模板配置",
+      "icon": "fas fa-file-alt",
+      "type": "group",
+      "order": 3,
+      "description": "管理系统中使用的各种模板",
+      "permissions": ["template:view"],
+      "children": {
+        "processTemplate": {
+          "id": "processTemplate",
+          "title": "流程模板",
+          "icon": "fas fa-project-diagram",
+          "href": "template-config.html",
+          "order": 1,
+          "description": "创建审批流程模板、配置流程步骤、设置审批人和抄送人",
+          "permissions": ["template:process:view"],
+          "features": [
+            "流程设计器",
+            "步骤配置",
+            "角色分配",
+            "模板管理"
+          ]
+        }
+      }
+    },
+    "aiCenter": {
+      "id": "aiCenter",
+      "title": "AI服务管理",
+      "icon": "fas fa-robot",
+      "type": "group",
+      "order": 4,
+      "description": "管理AI相关功能和配置",
+      "permissions": ["ai:view"],
+      "children": {
+        "aiPrompt": {
+          "id": "aiPrompt",
+          "title": "提示词管理",
+          "icon": "fas fa-comment-dots",
+          "href": "ai-prompt-management.html",
+          "order": 1,
+          "description": "AI提示词创建和编辑、提示词分类管理、版本控制",
+          "permissions": ["ai:prompt:view"],
+          "features": [
+            "提示词编辑",
+            "分类管理",
+            "版本控制",
+            "使用统计"
+          ]
+        },
+        "apiConfig": {
+          "id": "apiConfig",
+          "title": "API配置管理",
+          "icon": "fas fa-cogs",
+          "href": "api-configuration.html",
+          "order": 2,
+          "description": "API接口配置、服务端点管理、API密钥管理",
+          "permissions": ["ai:api:view"],
+          "features": [
+            "接口配置",
+            "端点管理",
+            "密钥管理",
+            "调用监控"
+          ]
+        }
+      }
+    },
+    "systemCenter": {
+      "id": "systemCenter",
+      "title": "系统管理",
+      "icon": "fas fa-cogs",
+      "type": "group",
+      "order": 5,
+      "description": "系统核心管理功能",
+      "permissions": ["system:view"],
+      "children": {
+        "rolePermission": {
+          "id": "rolePermission",
+          "title": "角色权限管理",
+          "icon": "fas fa-shield-alt",
+          "href": "role-permission-management.html",
+          "order": 1,
+          "description": "角色创建编辑、权限配置、用户角色分配",
+          "permissions": ["system:role:view"],
+          "features": [
+            "角色管理",
+            "三端权限配置",
+            "用户分配",
+            "权限级联"
+          ],
+          "platforms": ["admin", "pc", "mobile"]
+        },
+        "user": {
+          "id": "user",
+          "title": "用户账号管理",
+          "icon": "fas fa-users",
+          "href": "user-management.html",
+          "order": 2,
+          "description": "用户账号CRUD操作、用户状态管理、密码重置",
+          "permissions": ["system:user:view"],
+          "features": [
+            "用户CRUD",
+            "状态管理",
+            "密码重置",
+            "权限查看"
+          ]
+        },
+        "departmentManagement": {
+          "id": "departmentManagement",
+          "title": "部门管理",
+          "icon": "fas fa-sitemap",
+          "href": "department-management.html",
+          "order": 3,
+          "description": "部门层级结构管理、部门人员配置、组织架构维护",
+          "permissions": ["system:dept:view"],
+          "features": [
+            "层级管理",
+            "人员配置",
+            "权限设置",
+            "架构维护"
+          ]
+        },
+        "dataDictionary": {
+          "id": "dataDictionary",
+          "title": "数据字典",
+          "icon": "fas fa-book",
+          "href": "data-dictionary.html",
+          "order": 4,
+          "description": "系统字典项管理、下拉选项配置、数据标准化设置",
+          "permissions": ["system:dict:view"],
+          "features": [
+            "字典管理",
+            "选项配置",
+            "标准化设置",
+            "版本控制"
+          ]
+        },
+        "systemConfig": {
+          "id": "systemConfig",
+          "title": "系统日志管理",
+          "icon": "fas fa-cog",
+          "href": "system-logs.html",
+          "order": 5,
+          "description": "系统操作日志查看、错误日志分析、用户行为追踪",
+          "permissions": ["system:log:view"],
+          "features": [
+            "操作日志",
+            "错误分析",
+            "行为追踪",
+            "日志导出"
+          ]
+        },
+        "systemSettings": {
+          "id": "systemSettings",
+          "title": "系统配置",
+          "icon": "fas fa-sliders-h",
+          "href": "system-config.html",
+          "order": 6,
+          "description": "系统参数配置、功能模块开关、业务规则设置",
+          "permissions": ["system:config:view"],
+          "features": [
+            "参数配置",
+            "模块开关",
+            "规则设置",
+            "性能优化"
+          ]
+        },
+        "downloadCenter": {
+          "id": "downloadCenter",
+          "title": "下载中心",
+          "icon": "fas fa-download",
+          "href": "download-center.html",
+          "order": 7,
+          "description": "文件下载管理、下载历史记录、文件生成状态",
+          "permissions": ["system:download:view"],
+          "features": [
+            "文件下载",
+            "历史记录",
+            "状态管理",
+            "批量下载"
+          ]
+        }
+      }
+    }
+  },
+  "menuStatistics": {
+    "totalMenuItems": 13,
+    "topLevelMenus": 5,
+    "groupMenus": 4,
+    "singleMenus": 1,
+    "pageFiles": 13
+  },
+  "pageMapping": {
+    "home-dashboard.html": {
+      "menuId": "home",
+      "breadcrumb": ["首页"]
+    },
+    "community-management.html": {
+      "menuId": "community",
+      "parentId": "authCenter",
+      "breadcrumb": ["授权中心", "小区管理"]
+    },
+    "authorization-levels.html": {
+      "menuId": "authLevel",
+      "parentId": "authCenter",
+      "breadcrumb": ["授权中心", "授权等级管理"]
+    },
+    "template-config.html": {
+      "menuId": "processTemplate",
+      "parentId": "templateConfig",
+      "breadcrumb": ["模板配置", "流程模板"]
+    },
+    "ai-prompt-management.html": {
+      "menuId": "aiPrompt",
+      "parentId": "aiCenter",
+      "breadcrumb": ["AI服务管理", "提示词管理"]
+    },
+    "api-configuration.html": {
+      "menuId": "apiConfig",
+      "parentId": "aiCenter",
+      "breadcrumb": ["AI服务管理", "API配置管理"]
+    },
+    "role-permission-management.html": {
+      "menuId": "rolePermission",
+      "parentId": "systemCenter",
+      "breadcrumb": ["系统管理", "角色权限管理"]
+    },
+    "user-management.html": {
+      "menuId": "user",
+      "parentId": "systemCenter",
+      "breadcrumb": ["系统管理", "用户账号管理"]
+    },
+    "department-management.html": {
+      "menuId": "departmentManagement",
+      "parentId": "systemCenter",
+      "breadcrumb": ["系统管理", "部门管理"]
+    },
+    "data-dictionary.html": {
+      "menuId": "dataDictionary",
+      "parentId": "systemCenter",
+      "breadcrumb": ["系统管理", "数据字典"]
+    },
+    "system-logs.html": {
+      "menuId": "systemConfig",
+      "parentId": "systemCenter",
+      "breadcrumb": ["系统管理", "系统日志管理"]
+    },
+    "system-config.html": {
+      "menuId": "systemSettings",
+      "parentId": "systemCenter",
+      "breadcrumb": ["系统管理", "系统配置"]
+    },
+    "download-center.html": {
+      "menuId": "downloadCenter",
+      "parentId": "systemCenter",
+      "breadcrumb": ["系统管理", "下载中心"]
+    }
+  },
+  "menuFeatures": {
+    "responsiveDesign": {
+      "expandedWidth": "256px",
+      "collapsedWidth": "80px",
+      "mobileBreakpoint": "768px"
+    },
+    "interactiveFeatures": [
+      "菜单组展开/收起",
+      "当前页面自动高亮",
+      "侧边栏折叠/展开",
+      "悬浮显示子菜单",
+      "自动收起其他菜单组"
+    ],
+    "supportedIcons": "Font Awesome 6.0",
+    "cssFramework": "Tailwind CSS"
+  },
+  "maintainanceInfo": {
+    "configFile": "js/layout.js",
+    "configObject": "menuConfig",
+    "renderFunction": "renderSidebar",
+    "addNewMenu": [
+      "在menuConfig对象添加配置",
+      "创建对应的HTML页面文件",
+      "确保页面正确引入layout组件"
+    ],
+    "permissionControl": "支持基于角色的菜单显示控制"
+  }
+}

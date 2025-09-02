@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务等级管理 - 大家共治后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 表单分组样式 */
+        .form-group {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+        }
+        
+        /* 模态框动画已停用 */
+        #auth-level-modal {
+            /* 不使用动画 */
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* 表单验证样式 */
+        .form-error {
+            border-color: #EF4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        .error-message {
+            color: #EF4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+    </style>
+    <script src="js/tab-system.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/search-component.js"></script>
+    <!-- 引入状态滑块开关组件 -->
+    <script src="components/toggle-switch.js"></script>
+    <!-- 引入新增等级弹窗组件 -->
+    <script src="js/AddLevelModal.js"></script>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .permission-tree {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .permission-item {
+            border-left: 2px solid #e5e7eb;
+            margin-left: 10px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .permission-item:hover {
+            background-color: #f3f4f6;
+        }
+        .permission-item.selected {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        .permission-item.level-1 {
+            border-left-color: #3b82f6;
+        }
+        .permission-item.level-2 {
+            border-left-color: #10b981;
+        }
+        .permission-item.level-3 {
+            border-left-color: #f59e0b;
+        }
+        
+        /* 权限级联选择样式 */
+        .permission-cascade .cascade-list {
+            height: 200px;
+            max-height: 200px;
+        }
+        
+        .tab-btn.active {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        
+        .permission-item input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        /* 设置不同弹窗的层级 */
+        #service-level-modal {
+            z-index: 1000;
+        }
+        #permissionModal {
+            z-index: 1010;
+        }
+        #community-modal {
+            z-index: 1020;
+        }
+        .permission-cascade {
+            max-height: 600px;
+        }
+        .cascade-list {
+            max-height: 250px;
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            border-bottom-color: #4f46e5;
+            color: #4f46e5;
+        }
+        /* 确保弹窗内容不会溢出 */
+        .modal-dialog {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- 侧边栏容器 -->
+        <div id="sidebar-container"></div>
+        
+        <!-- 主内容区域 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- 顶部导航容器 -->
+        <div id="top-navigation-container"></div>
+        
+        <!-- 页面内容 -->
+        <main id="main-content" class="flex-1 overflow-y-auto p-6">
+            <!-- 页面标题 -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">服务等级管理</h1>
+                    </div>
+                    <button type="button" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                            onclick="openServiceLevelModal()">
+                        <i class="fas fa-plus mr-2"></i>
+                        新增
+                    </button>
+                </div>
+            </div>
+
+
+
+            <!-- 筛选区域 -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="grid grid-cols-12 gap-4 w-full">
+                    <div class="col-span-12 md:col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">等级名称</label>
+                        <select id="filter-level-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">全部等级</option>
+                            <option value="基础版">基础版</option>
+                            <option value="高级版">高级版</option>
+                            <option value="定制版">定制版</option>
+                        </select>
+                    </div>
+                    <div class="col-span-12 md:col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">状态</label>
+                        <select id="filter-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">全部状态</option>
+                            <option value="enabled">启用</option>
+                            <option value="disabled">停用</option>
+                        </select>
+                    </div>
+                    <div class="col-span-12 md:col-span-3" id="auth-level-search-container"></div>
+                </div>
+            </div>
+
+            <!-- 等级列表 -->
+            <div class="bg-white rounded-lg shadow">
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">等级名称</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">等级描述</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">订阅小区</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后操作人</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">更新时间</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auth-levels-table" class="bg-white divide-y divide-gray-200">
+                            <!-- 基础版 -->
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">基础版</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">免费体验基础功能</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                      <div class="flex items-center gap-2">
+                                          <div class="text-sm text-gray-900">156个小区</div>
+                                          <button class="text-blue-600 hover:text-blue-900 text-sm" onclick="showCommunityDetails('basic')">
+                                              <i class="fas fa-eye"></i> 查看详情
+                                          </button>
+                                      </div>
+                                  </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">张三</div>
+                                    <div class="text-sm text-gray-500">13800138000</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    2024-01-15 14:30
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap" style="min-width: 80px;">
+                                    <div id="toggle-basic" class="flex"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="editServiceLevel('basic')">
+                                        编辑
+                                    </button>
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="configurePermissions('basic')">
+                                        权限配置
+                                    </button>
+                                    <button class="text-gray-400 cursor-not-allowed" disabled title="该等级有订阅小区，无法删除">
+                                        删除
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- 高级版 -->
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">高级版</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">所有功能模块</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                      <div class="flex items-center gap-2">
+                                          <div class="text-sm text-gray-900">89个小区</div>
+                                          <button class="text-blue-600 hover:text-blue-900 text-sm" onclick="showCommunityDetails('premium')">
+                                              <i class="fas fa-eye"></i> 查看详情
+                                          </button>
+                                      </div>
+                                  </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">李四</div>
+                                    <div class="text-sm text-gray-500">13900139000</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    2024-01-20 09:15
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap" style="min-width: 80px;">
+                                    <div id="toggle-advanced" class="flex"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="editServiceLevel('premium')">
+                                        编辑
+                                    </button>
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="configurePermissions('premium')">
+                                        权限配置
+                                    </button>
+                                    <button class="text-gray-400 cursor-not-allowed" disabled title="该等级有订阅小区，无法删除">
+                                        删除
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- 定制版 -->
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">定制版</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">个性化定制功能，根据需求定制专属功能</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                      <div class="flex items-center gap-2">
+                                          <div class="text-sm text-gray-900">23个小区</div>
+                                          <button class="text-blue-600 hover:text-blue-900 text-sm" onclick="showCommunityDetails('custom')">
+                                              <i class="fas fa-eye"></i> 查看详情
+                                          </button>
+                                      </div>
+                                  </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">李四</div>
+                                    <div class="text-sm text-gray-500">13800138002</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    2024-01-15 14:30
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap" style="min-width: 80px;">
+                                    <div id="toggle-custom" class="flex"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="editServiceLevel('custom')">
+                                        编辑
+                                    </button>
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="configurePermissions('custom')">
+                                        权限配置
+                                    </button>
+                                    <button class="text-gray-400 cursor-not-allowed" disabled title="该等级有订阅小区，无法删除">
+                                        删除
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- 试用版 -->
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">试用版</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">免费试用版本，功能有限，适合体验使用</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    0个小区
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    系统管理员
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    2024-01-25 10:00
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap" style="min-width: 80px;">
+                                    <div id="toggle-trial" class="flex"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="editServiceLevel('trial')">
+                                        编辑
+                                    </button>
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="configurePermissions('trial')">
+                                        权限配置
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-900" onclick="deleteServiceLevel('trial')">
+                                        删除
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                 <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                        <!-- 左侧：记录信息和分页条数选择器 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div class="text-sm text-gray-500">
+                                显示 <span class="font-medium">1-10</span> 条，共 <span class="font-medium">156</span> 条记录
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600">每页显示</label>
+                                <select class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="10" selected>10条</option>
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧：分页控件 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <!-- 页码按钮组 -->
+                            <div class="flex items-center space-x-1">
+                                <!-- 上一页 -->
+                                <button class="px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <i class="fas fa-chevron-left mr-1"></i>上一页
+                                </button>
+                                
+                                <!-- 页码按钮 -->
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded font-medium">1</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">4</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">5</button>
+                                <span class="px-2 py-1 text-sm text-gray-500">...</span>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">16</button>
+                                
+                                <!-- 下一页 -->
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                                    下一页<i class="fas fa-chevron-right ml-1"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- 页码跳转 -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600">跳转到</span>
+                                <input type="number" min="1" max="16" value="1" class="w-16 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <span class="text-sm text-gray-600">页</span>
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+            </div>
+        </main>
+    </div>
+
+    <!-- 新增/编辑等级弹窗 -->
+    <div id="auth-level-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" style="display: none;">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <!-- 弹窗标题 -->
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900" id="modal-title">新增服务等级</h3>
+                    <button class="text-gray-400 hover:text-gray-600" onclick="closeServiceLevelModal()">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- 表单内容 -->
+                <form id="auth-level-form" class="space-y-6">
+                    <!-- 基本信息组 -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">基本信息</h4>
+                        <!-- 等级名称 -->
+                        <div>
+                            <label for="level-name" class="block text-sm font-medium text-gray-700 mb-2">等级名称 <span class="text-red-500">*</span></label>
+                            <input type="text" id="level-name" name="level-name" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="请输入等级名称">
+                        </div>
+                    </div>
+                    
+                    <!-- 描述信息组 -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">描述信息</h4>
+                        <!-- 等级描述 -->
+                        <div>
+                            <label for="level-description" class="block text-sm font-medium text-gray-700 mb-2">等级描述 <span class="text-red-500">*</span></label>
+                            <textarea id="level-description" name="level-description" rows="3" required
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="请输入等级描述"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 权限配置组 -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">权限配置</h4>
+                        
+                        <!-- 平台选择标签页 -->
+                        <div class="mb-4">
+                            <div class="border-b border-gray-200">
+                                <nav class="-mb-px flex space-x-8">
+                                    <button type="button" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-platform="pc">
+                                        PC中台
+                                    </button>
+                                    <button type="button" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-platform="mobile">
+                                        小程序
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+
+                        <!-- 权限级联选择区域 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <!-- 模块权限 -->
+                            <div class="permission-cascade">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h5 class="text-sm font-medium text-gray-700">模块权限</h5>
+                                    <div class="space-x-2">
+                                        <button type="button" onclick="selectAllModulesForAdd()" class="text-xs text-blue-600 hover:text-blue-800">全选</button>
+                                        <button type="button" onclick="clearAllModulesForAdd()" class="text-xs text-gray-600 hover:text-gray-800">清空</button>
+                                    </div>
+                                </div>
+                                <div id="moduleList" class="cascade-list border border-gray-200 rounded-md p-2 bg-white overflow-y-auto">
+                                    <!-- 模块列表将通过JavaScript动态生成 -->
+                                </div>
+                            </div>
+
+                            <!-- 功能权限 -->
+                            <div class="permission-cascade">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h5 class="text-sm font-medium text-gray-700">功能权限</h5>
+                                    <div class="space-x-2">
+                                        <button type="button" onclick="selectAllFunctionsForAdd()" class="text-xs text-blue-600 hover:text-blue-800">全选</button>
+                                        <button type="button" onclick="clearAllFunctionsForAdd()" class="text-xs text-gray-600 hover:text-gray-800">清空</button>
+                                    </div>
+                                </div>
+                                <div id="functionList" class="cascade-list border border-gray-200 rounded-md p-2 bg-white overflow-y-auto">
+                                    <!-- 功能列表将通过JavaScript动态生成 -->
+                                </div>
+                            </div>
+
+                            <!-- 按钮权限 -->
+                            <div class="permission-cascade">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h5 class="text-sm font-medium text-gray-700">按钮权限</h5>
+                                    <div class="space-x-2">
+                                        <button type="button" onclick="selectAllButtonsForAdd()" class="text-xs text-blue-600 hover:text-blue-800">全选</button>
+                                        <button type="button" onclick="clearAllButtonsForAdd()" class="text-xs text-gray-600 hover:text-gray-800">清空</button>
+                                    </div>
+                                </div>
+                                <div id="buttonList" class="cascade-list border border-gray-200 rounded-md p-2 bg-white overflow-y-auto">
+                                    <!-- 按钮列表将通过JavaScript动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 已选权限预览 -->
+                        <div class="mt-4">
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">已选权限预览</h5>
+                            <div id="selectedPermissionsList" class="border border-gray-200 rounded-md p-3 bg-white min-h-[60px] max-h-32 overflow-y-auto">
+                                <p class="text-gray-500 text-sm">暂未选择任何权限</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <!-- 表单按钮 -->
+                    <div class="flex items-center justify-end space-x-4 pt-6 border-t">
+                        <button type="button" onclick="closeAddLevelModal()"
+                                class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            取消
+                        </button>
+                        <button type="button" onclick="saveAddLevel()"
+                                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i class="fas fa-save mr-2"></i>
+                            保存
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 小区详情弹窗 -->
+    <div id="community-details-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" style="display: none;">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <!-- 弹窗标题 -->
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900" id="modal-title">订阅小区详情</h3>
+                    <button class="text-gray-400 hover:text-gray-600" onclick="closeCommunityModal()">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- 搜索框 -->
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="text" id="community-search" placeholder="搜索小区名称..." 
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 小区列表 -->
+                <div class="max-h-96 overflow-y-auto">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        小区名称
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        认证户数/总户数
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        授权到期时间
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        状态
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="community-list" class="bg-white divide-y divide-gray-200">
+                                <!-- 小区数据将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 分页 -->
+                <div class="flex items-center justify-between mt-4 pt-4 border-t">
+                    <div class="text-sm text-gray-700">
+                        显示 <span id="showing-start">1</span> 到 <span id="showing-end">10</span> 条，共 <span id="total-communities">0</span> 条记录
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="prev-page" class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50" onclick="changePage(-1)">
+                            上一页
+                        </button>
+                        <button id="next-page" class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50" onclick="changePage(1)">
+                            下一页
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑等级弹窗（简化版） -->
+    <div id="edit-level-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" style="display: none;">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <!-- 弹窗标题 -->
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900" id="edit-modal-title">编辑服务等级</h3>
+                    <button class="text-gray-400 hover:text-gray-600" onclick="closeEditLevelModal()">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- 表单内容 -->
+                <form id="edit-level-form" class="space-y-6">
+                    <!-- 基本信息组 -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">基本信息</h4>
+                        
+                        <!-- 等级名称 -->
+                        <div class="mb-4">
+                            <label for="edit-level-name" class="block text-sm font-medium text-gray-700 mb-2">等级名称 <span class="text-red-500">*</span></label>
+                            <input type="text" id="edit-level-name" name="edit-level-name" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="请输入等级名称">
+                        </div>
+                        
+                        <!-- 等级描述 -->
+                        <div>
+                            <label for="edit-level-description" class="block text-sm font-medium text-gray-700 mb-2">等级描述 <span class="text-red-500">*</span></label>
+                            <textarea id="edit-level-description" name="edit-level-description" rows="3" required
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="请输入等级描述"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- 表单按钮 -->
+                    <div class="flex items-center justify-end space-x-4 pt-6 border-t">
+                        <button type="button" onclick="closeEditLevelModal()"
+                                class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            取消
+                        </button>
+                        <button type="button" onclick="saveEditLevel()"
+                                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i class="fas fa-save mr-2"></i>
+                            保存
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 权限配置弹窗 -->
+    <div id="permissionModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-6xl modal-dialog" style="width: 80%; max-width: 1000px;">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">权限配置</h3>
+                    <button onclick="closePermissionModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div class="permission-cascade">
+                    <!-- 端选择 -->
+                    <div class="cascade-level mb-6">
+                        <h4 class="text-base font-medium text-gray-900 mb-3">选择端</h4>
+                        <div class="platform-tabs flex space-x-4 border-b">
+                            <button type="button" id="tabPc" class="tab-btn px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium" data-platform="pc">PC中台</button>
+                            <button type="button" id="tabMobile" class="tab-btn px-4 py-2 text-gray-500 hover:text-gray-700" data-platform="mobile">小程序</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 级联权限选择区域 -->
+                    <div class="cascade-container grid grid-cols-3 gap-6 mb-6">
+                        <!-- 模块选择 -->
+                        <div class="cascade-column">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="text-sm font-medium text-gray-700">模块</h5>
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="selectAllModules()" class="text-xs text-blue-600 hover:text-blue-800">全选</button>
+                                    <button type="button" onclick="clearAllModules()" class="text-xs text-gray-500 hover:text-gray-700">清空</button>
+                                </div>
+                            </div>
+                            <div id="moduleList" class="cascade-list border border-gray-300 rounded-lg p-3 h-64 overflow-y-auto"></div>
+                        </div>
+                        
+                        <!-- 功能选择 -->
+                        <div class="cascade-column">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="text-sm font-medium text-gray-700">功能</h5>
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="selectAllFunctions()" class="text-xs text-blue-600 hover:text-blue-800">全选</button>
+                                    <button type="button" onclick="clearAllFunctions()" class="text-xs text-gray-500 hover:text-gray-700">清空</button>
+                                </div>
+                            </div>
+                            <div id="functionList" class="cascade-list border border-gray-300 rounded-lg p-3 h-64 overflow-y-auto"></div>
+                        </div>
+                        
+                        <!-- 按钮权限选择 -->
+                        <div class="cascade-column">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="text-sm font-medium text-gray-700">按钮权限</h5>
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="selectAllButtons()" class="text-xs text-blue-600 hover:text-blue-800">全选</button>
+                                    <button type="button" onclick="clearAllButtons()" class="text-xs text-gray-500 hover:text-gray-700">清空</button>
+                                </div>
+                            </div>
+                            <div id="buttonList" class="cascade-list border border-gray-300 rounded-lg p-3 h-64 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closePermissionModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button type="button" onclick="savePermissions()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                         保存权限
+                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth-level.js"></script>
+    <script>
+        // 小区详情弹窗相关函数
+        let communityCurrentPage = 1;
+        const communityPageSize = 10;
+        let currentLevelType = '';
+        
+        // 模拟小区数据
+        const communityData = {
+            basic: [
+                { name: '阳光花园', address: '朝阳区建国路88号', residents: 1200, certifiedHouseholds: 1150, totalHouseholds: 1200, expiryDate: '2024-12-31', status: '启用' },
+                { name: '绿城小区', address: '海淀区中关村大街123号', residents: 800, certifiedHouseholds: 750, totalHouseholds: 800, expiryDate: '2024-11-15', status: '启用' },
+                { name: '华府庭院', address: '西城区金融街45号', residents: 1500, certifiedHouseholds: 1400, totalHouseholds: 1500, expiryDate: '2025-01-20', status: '停用' },
+                { name: '锦绣家园', address: '东城区王府井大街67号', residents: 900, certifiedHouseholds: 850, totalHouseholds: 900, expiryDate: '2024-10-30', status: '启用' },
+                { name: '碧水湾', address: '丰台区丽泽商务区89号', residents: 1100, certifiedHouseholds: 1050, totalHouseholds: 1100, expiryDate: '2025-03-15', status: '启用' }
+            ],
+            premium: [
+                { name: '皇家花园', address: '朝阳区CBD核心区101号', residents: 2000, certifiedHouseholds: 1900, totalHouseholds: 2000, expiryDate: '2025-06-30', status: '启用' },
+                { name: '翡翠城', address: '海淀区上地信息路234号', residents: 1800, certifiedHouseholds: 1700, totalHouseholds: 1800, expiryDate: '2024-12-25', status: '启用' },
+                { name: '钻石湾', address: '西城区复兴门内大街56号', residents: 2200, certifiedHouseholds: 2100, totalHouseholds: 2200, expiryDate: '2025-02-14', status: '停用' }
+            ],
+            custom: [
+                { name: '至尊豪庭', address: '朝阳区三里屯太古里78号', residents: 500, certifiedHouseholds: 480, totalHouseholds: 500, expiryDate: '2025-08-20', status: '启用' },
+                { name: '御景园', address: '海淀区五道口华清嘉园90号', residents: 600, certifiedHouseholds: 580, totalHouseholds: 600, expiryDate: '2025-04-10', status: '启用' }
+            ]
+        };
+        
+        function showCommunityDetails(levelType) {
+               currentLevelType = levelType;
+               communityCurrentPage = 1;
+              
+              const levelNames = {
+                  basic: '基础版',
+                  premium: '高级版', 
+                  custom: '定制版'
+              };
+              
+              document.getElementById('modal-title').textContent = `${levelNames[levelType]} - 订阅小区详情`;
+              document.getElementById('community-details-modal').style.display = 'block';
+              
+              loadCommunityList();
+          }
+        
+        function closeCommunityModal() {
+              document.getElementById('community-details-modal').style.display = 'none';
+          }
+        
+        function loadCommunityList() {
+             const communities = communityData[currentLevelType] || [];
+             const startIndex = (communityCurrentPage - 1) * communityPageSize;
+             const endIndex = Math.min(startIndex + communityPageSize, communities.length);
+            const currentCommunities = communities.slice(startIndex, endIndex);
+            
+            const listContainer = document.getElementById('community-list');
+            listContainer.innerHTML = '';
+            
+            currentCommunities.forEach(community => {
+                const communityRow = document.createElement('tr');
+                communityRow.className = 'hover:bg-gray-50';
+                
+                // 状态样式处理
+                const statusClass = community.status === '启用' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                
+                communityRow.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${community.name}</div>
+                        <div class="text-sm text-gray-500">${community.address}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${community.certifiedHouseholds}/${community.totalHouseholds}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${community.expiryDate}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${statusClass}">
+                            ${community.status}
+                        </span>
+                    </td>
+                `;
+                listContainer.appendChild(communityRow);
+            });
+            
+            // 更新分页信息
+            document.getElementById('showing-start').textContent = startIndex + 1;
+            document.getElementById('showing-end').textContent = endIndex;
+            document.getElementById('total-communities').textContent = communities.length;
+            
+            // 更新分页按钮状态
+             document.getElementById('prev-page').disabled = communityCurrentPage === 1;
+             document.getElementById('next-page').disabled = endIndex >= communities.length;
+        }
+        
+        function changePage(direction) {
+             const communities = communityData[currentLevelType] || [];
+             const totalPages = Math.ceil(communities.length / communityPageSize);
+             
+             communityCurrentPage += direction;
+             if (communityCurrentPage < 1) communityCurrentPage = 1;
+             if (communityCurrentPage > totalPages) communityCurrentPage = totalPages;
+            
+            loadCommunityList();
+        }
+        
+        // 新建等级表单相关功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 表单提交处理
+            const form = document.getElementById('auth-level-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // 获取表单数据
+                    const formData = new FormData(form);
+                    const levelData = {
+                        name: formData.get('level-name'),
+                        description: formData.get('level-description')
+                    };
+                    
+                    // 表单验证
+                    if (!levelData.name || !levelData.description) {
+                        alert('请填写必填字段！');
+                        return;
+                    }
+                    
+                    // 模拟保存操作
+                    console.log('保存等级数据：', levelData);
+                    alert('等级创建成功！');
+                    
+                    // 关闭弹窗并重置表单
+                    closeServiceLevelModal();
+                    form.reset();
+                    
+                    // 重新加载等级列表（这里应该调用实际的刷新函数）
+                    // loadServiceLevels();
+                });
+            }
+        });
+        
+        // 搜索功能
+        document.getElementById('community-search').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const communities = communityData[currentLevelType] || [];
+            
+            if (searchTerm === '') {
+                loadCommunityList();
+                return;
+            }
+            
+            const filteredCommunities = communities.filter(community => 
+                community.name.toLowerCase().includes(searchTerm) || 
+                community.address.toLowerCase().includes(searchTerm)
+            );
+            
+            const listContainer = document.getElementById('community-list');
+            listContainer.innerHTML = '';
+            
+            filteredCommunities.forEach(community => {
+                const communityRow = document.createElement('tr');
+                communityRow.className = 'hover:bg-gray-50';
+                
+                // 状态样式处理
+                const statusClass = community.status === '启用' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                
+                communityRow.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${community.name}</div>
+                        <div class="text-sm text-gray-500">${community.address}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${community.certifiedHouseholds}/${community.totalHouseholds}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${community.expiryDate}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${statusClass}">
+                            ${community.status}
+                        </span>
+                    </td>
+                `;
+                listContainer.appendChild(communityRow);
+            });
+            
+            // 更新搜索结果统计
+            document.getElementById('showing-start').textContent = filteredCommunities.length > 0 ? 1 : 0;
+            document.getElementById('showing-end').textContent = filteredCommunities.length;
+            document.getElementById('total-communities').textContent = filteredCommunities.length;
+        });
+        
+        // 初始化搜索组件
+        let authLevelSearchComponent;
+        let toggleSwitches = {};
+        let addLevelModal;
+        
+        // 模拟权限数据（三级级联：模块-功能-按钮权限）
+        const mockPermissionsData = {
+            pc: [
+                {
+                    id: 'user_module',
+                    name: '用户管理',
+                    children: [
+                        {
+                            id: 'user_list',
+                            name: '用户列表',
+                            children: [
+                                { id: 'user_view', name: '查看用户' },
+                                { id: 'user_add', name: '新增用户' },
+                                { id: 'user_edit', name: '编辑用户' },
+                                { id: 'user_delete', name: '删除用户' }
+                            ]
+                        },
+                        {
+                            id: 'user_role',
+                            name: '角色管理',
+                            children: [
+                                { id: 'role_view', name: '查看角色' },
+                                { id: 'role_add', name: '新增角色' },
+                                { id: 'role_edit', name: '编辑角色' },
+                                { id: 'role_delete', name: '删除角色' }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 'community_module',
+                    name: '小区管理',
+                    children: [
+                        {
+                            id: 'community_list',
+                            name: '小区列表',
+                            children: [
+                                { id: 'community_view', name: '查看小区' },
+                                { id: 'community_add', name: '新增小区' },
+                                { id: 'community_edit', name: '编辑小区' },
+                                { id: 'community_delete', name: '删除小区' }
+                            ]
+                        },
+                        {
+                            id: 'resident_manage',
+                            name: '居民管理',
+                            children: [
+                                { id: 'resident_view', name: '查看居民' },
+                                { id: 'resident_add', name: '新增居民' },
+                                { id: 'resident_edit', name: '编辑居民' },
+                                { id: 'resident_delete', name: '删除居民' }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            mobile: [
+                {
+                    id: 'mobile_community',
+                    name: '小区服务',
+                    children: [
+                        {
+                            id: 'community_info',
+                            name: '小区信息',
+                            children: [
+                                { id: 'info_view', name: '查看信息' },
+                                { id: 'info_share', name: '分享信息' }
+                            ]
+                        },
+                        {
+                            id: 'resident_service',
+                            name: '居民服务',
+                            children: [
+                                { id: 'service_apply', name: '申请服务' },
+                                { id: 'service_view', name: '查看服务' }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 'mobile_interaction',
+                    name: '互动功能',
+                    children: [
+                        {
+                            id: 'voting_system',
+                            name: '投票系统',
+                            children: [
+                                { id: 'vote_participate', name: '参与投票' },
+                                { id: 'vote_view', name: '查看结果' }
+                            ]
+                        },
+                        {
+                            id: 'announcement',
+                            name: '公告通知',
+                            children: [
+                                { id: 'announcement_view', name: '查看公告' },
+                                { id: 'announcement_comment', name: '评论公告' }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+        
+        /**
+         * 页面加载完成后初始化组件
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化页面布局（侧边栏和顶部导航）
+            initPage('authorization-levels');
+            
+            // 创建搜索组件实例
+            authLevelSearchComponent = new SearchComponent({
+                containerId: 'auth-level-search-container',
+                placeholder: '等级名称/描述',
+                label: '搜索',
+                onSearch: function(searchValue) {
+                    console.log('搜索服务等级:', searchValue);
+                    // 这里可以添加实际的搜索逻辑
+                    // 例如：filterAuthLevelList(searchValue);
+                    if (searchValue) {
+                        alert(`正在搜索: ${searchValue}`);
+                    }
+                },
+                onReset: function() {
+                    console.log('重置服务等级搜索');
+                    // 这里可以添加实际的重置逻辑
+                    // 例如：resetAuthLevelList();
+                    alert('已重置搜索条件');
+                }
+            });
+            
+            // 初始化状态滑块开关
+            initToggleSwitches();
+            
+            // 初始化新增等级弹窗
+            addLevelModal = new AddLevelModal({
+                container: document.body,
+                permissionsData: mockPermissionsData,
+                hidePlatforms: ['admin'], // 隐藏总后台平台
+                onSave: function(levelData) {
+                    console.log('保存等级数据:', levelData);
+                    // 这里可以添加实际的保存逻辑
+                    // 例如：saveLevelToServer(levelData);
+                    alert(`等级 "${levelData.name}" 创建成功！`);
+                    // 刷新等级列表
+                    // refreshLevelList();
+                },
+                onCancel: function() {
+                    console.log('取消新增等级');
+                }
+            });
+        });
+        
+        /**
+         * 初始化所有状态滑块开关
+         */
+        function initToggleSwitches() {
+            // 基础版开关（默认启用）
+            toggleSwitches.basic = new ToggleSwitch({
+                containerId: 'toggle-basic',
+                id: 'basic-toggle',
+                size: 'sm',
+                checked: true,
+                onChange: function(checked, id) {
+                    toggleLevelStatus('basic', checked);
+                }
+            });
+            
+            // 高级版开关（默认启用）
+            toggleSwitches.advanced = new ToggleSwitch({
+                containerId: 'toggle-advanced',
+                id: 'advanced-toggle',
+                size: 'sm',
+                checked: true,
+                onChange: function(checked, id) {
+                    toggleLevelStatus('advanced', checked);
+                }
+            });
+            
+            // 定制版开关（默认停用）
+            toggleSwitches.custom = new ToggleSwitch({
+                containerId: 'toggle-custom',
+                id: 'custom-toggle',
+                size: 'sm',
+                checked: false,
+                onChange: function(checked, id) {
+                    toggleLevelStatus('custom', checked);
+                }
+            });
+            
+            // 试用版开关（默认启用）
+            toggleSwitches.trial = new ToggleSwitch({
+                containerId: 'toggle-trial',
+                id: 'trial-toggle',
+                size: 'sm',
+                checked: true,
+                onChange: function(checked, id) {
+                    toggleLevelStatus('trial', checked);
+                }
+            });
+        }
+        
+        /**
+         * 获取当前搜索值（供其他函数调用）
+         * @returns {string} 当前搜索关键词
+         */
+        function getCurrentAuthLevelSearchValue() {
+            return authLevelSearchComponent ? authLevelSearchComponent.getValue() : '';
+        }
+        
+        /**
+         * 设置搜索值（供其他函数调用）
+         * @param {string} value 要设置的搜索值
+         */
+        function setAuthLevelSearchValue(value) {
+            if (authLevelSearchComponent) {
+                authLevelSearchComponent.setValue(value);
+            }
+        }
+        
+        /**
+         * 打开新增等级弹窗
+         */
+        function openServiceLevelModal() {
+            if (addLevelModal) {
+                addLevelModal.show();
+            } else {
+                console.error('AddLevelModal 未初始化');
+                alert('弹窗组件未初始化，请刷新页面重试');
+            }
+        }
+        
+        /**
+         * 切换等级状态（启用/停用）
+         * @param {string} levelId 等级ID
+         * @param {boolean} isEnabled 是否启用
+         */
+        function toggleLevelStatus(levelId, isEnabled) {
+            // 这里可以添加实际的状态更新逻辑
+            console.log(`等级 ${levelId} 状态已${isEnabled ? '启用' : '停用'}`);
+            
+            // 模拟API调用
+            // updateLevelStatus(levelId, isEnabled);
+            
+            // 显示状态变更提示
+            const levelNames = {
+                basic: '基础版',
+                premium: '高级版',
+                custom: '定制版',
+                trial: '试用版'
+            };
+            
+            const levelName = levelNames[levelId] || levelId;
+            alert(`${levelName}已${isEnabled ? '启用' : '停用'}`);
+        }
+        
+        /**
+         * 编辑服务等级
+         * @param {string} levelId 等级ID
+         */
+        function editServiceLevel(levelId) {
+            console.log('编辑服务等级:', levelId);
+            
+            // 获取等级信息
+            const levelNames = {
+                basic: '基础版',
+                premium: '高级版',
+                custom: '定制版',
+                trial: '试用版'
+            };
+            
+            const levelDescriptions = {
+                basic: '免费体验基础功能',
+                premium: '所有功能模块',
+                custom: '个性化定制功能，根据需求定制专属功能',
+                trial: '免费试用版本，功能有限，适合体验使用'
+            };
+            
+            const levelName = levelNames[levelId] || levelId;
+            const levelDescription = levelDescriptions[levelId] || '';
+            
+            // 打开编辑弹窗
+            openEditLevelModal(levelId, levelName, levelDescription);
+        }
+        
+        /**
+         * 配置权限
+         * @param {string} levelId 等级ID
+         */
+        function configurePermissions(levelId) {
+            console.log('配置权限:', levelId);
+            
+            // 获取等级信息
+            const levelNames = {
+                basic: '基础版',
+                premium: '高级版',
+                custom: '定制版',
+                trial: '试用版'
+            };
+            
+            const levelName = levelNames[levelId] || levelId;
+            
+            // 打开权限配置弹窗
+            openPermissionModal(levelId, levelName);
+        }
+        
+        /**
+         * 删除服务等级
+         * @param {string} levelId 等级ID
+         */
+        function deleteServiceLevel(levelId) {
+            console.log('删除服务等级:', levelId);
+            
+            // 获取等级信息
+            const levelNames = {
+                basic: '基础版',
+                premium: '高级版',
+                custom: '定制版',
+                trial: '试用版'
+            };
+            
+            const levelName = levelNames[levelId] || levelId;
+            
+            // 确认删除
+            if (confirm(`确定要删除 "${levelName}" 吗？此操作不可恢复。`)) {
+                // TODO: 这里可以添加实际的删除逻辑
+                alert(`"${levelName}" 已成功删除！`);
+                // 刷新页面或移除表格行
+                // location.reload(); // 或者动态移除表格行
+            }
+        }
+        
+        /**
+         * 关闭服务等级弹窗
+         */
+        function closeServiceLevelModal() {
+            const modal = document.getElementById('auth-level-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        /**
+         * 关闭新增等级弹窗
+         */
+        function closeAddLevelModal() {
+            if (addLevelModal) {
+                addLevelModal.hide();
+            }
+        }
+        
+        /**
+         * 保存新增等级
+         */
+        function saveAddLevel() {
+            if (addLevelModal) {
+                // 这里会触发AddLevelModal的saveLevel方法
+                addLevelModal.saveLevel();
+            }
+        }
+        
+        // 编辑等级弹窗相关函数
+        let currentEditingLevelId = null;
+        
+        /**
+         * 打开编辑等级弹窗
+         */
+        function openEditLevelModal(levelId, levelName, levelDescription) {
+            currentEditingLevelId = levelId;
+            
+            // 设置弹窗标题
+            document.getElementById('edit-modal-title').textContent = `编辑服务等级 - ${levelName}`;
+            
+            // 填充现有数据
+            document.getElementById('edit-level-name').value = levelName;
+            document.getElementById('edit-level-description').value = levelDescription;
+            
+            // 显示弹窗
+            const modal = document.getElementById('edit-level-modal');
+            modal.style.display = 'block';
+            
+            // 添加点击外部关闭事件
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeEditLevelModal();
+                }
+            });
+        }
+        
+        /**
+         * 关闭编辑等级弹窗
+         */
+        function closeEditLevelModal() {
+            const modal = document.getElementById('edit-level-modal');
+            modal.style.display = 'none';
+            currentEditingLevelId = null;
+            
+            // 清空表单
+            document.getElementById('edit-level-name').value = '';
+            document.getElementById('edit-level-description').value = '';
+        }
+        
+        /**
+         * 保存编辑等级
+         */
+        function saveEditLevel() {
+            // 获取表单数据
+            const levelName = document.getElementById('edit-level-name').value.trim();
+            const levelDescription = document.getElementById('edit-level-description').value.trim();
+            
+            // 验证必填字段
+            if (!levelName) {
+                alert('请输入等级名称');
+                return;
+            }
+            
+            if (!levelDescription) {
+                alert('请输入等级描述');
+                return;
+            }
+            
+            // 模拟保存操作
+            console.log('保存编辑等级:', {
+                levelId: currentEditingLevelId,
+                name: levelName,
+                description: levelDescription
+            });
+            
+            alert(`等级 "${levelName}" 已成功更新！`);
+            
+            // 关闭弹窗
+            closeEditLevelModal();
+            
+            // TODO: 这里可以添加实际的保存逻辑，比如发送API请求
+            // 并在成功后刷新页面数据
+        }
+        
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initPage === 'function') {
+                initPage('authorization-levels');
+            } else {
+                console.error('initPage函数未定义，请检查layout.js是否正确加载');
+            }
+        });
+        
+        // 权限配置弹窗相关函数
+        let currentEditingLevel = null;
+        let currentPlatform = 'pc';
+        let selectedPermissions = new Set();
+        
+        /**
+         * 打开权限配置弹窗
+         */
+        function openPermissionModal(levelId, levelName) {
+            currentEditingLevel = levelId;
+            const modal = document.getElementById('permissionModal');
+            const title = modal.querySelector('h3');
+            title.textContent = `权限配置 - ${levelName}`;
+            
+            // 显示弹窗
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+            
+            // 初始化权限数据
+            initPermissionModal();
+        }
+        
+        /**
+         * 关闭权限配置弹窗
+         */
+        function closePermissionModal() {
+            const modal = document.getElementById('permissionModal');
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            currentEditingLevel = null;
+            selectedPermissions.clear();
+        }
+        
+        /**
+         * 初始化权限配置弹窗
+         */
+        function initPermissionModal() {
+            // 初始化平台标签事件
+            const platformTabs = document.querySelectorAll('#permissionModal .tab-btn');
+            platformTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    switchPermissionPlatform(this.dataset.platform);
+                });
+            });
+            
+            // 初始化默认平台
+            switchPermissionPlatform('pc');
+        }
+        
+        /**
+         * 切换权限配置平台
+         */
+        function switchPermissionPlatform(platform) {
+            currentPlatform = platform;
+            
+            // 更新标签样式
+            const tabs = document.querySelectorAll('#permissionModal .tab-btn');
+            tabs.forEach(tab => {
+                if (tab.dataset.platform === platform) {
+                    tab.className = 'tab-btn px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium';
+                } else {
+                    tab.className = 'tab-btn px-4 py-2 text-gray-500 hover:text-gray-700';
+                }
+            });
+            
+            // 加载对应平台的权限数据
+            loadPermissionData(platform);
+        }
+        
+        /**
+         * 加载权限数据
+         */
+        function loadPermissionData(platform) {
+            const platformData = mockPermissionsData[platform] || [];
+            
+            // 加载模块列表
+            loadModuleList(platformData);
+            
+            // 清空功能和按钮列表
+            document.getElementById('functionList').innerHTML = '<div class="text-gray-500 text-center py-4">请先选择模块</div>';
+            document.getElementById('buttonList').innerHTML = '<div class="text-gray-500 text-center py-4">请先选择模块和功能</div>';
+        }
+        
+        /**
+         * 加载模块列表
+         */
+        function loadModuleList(platformData) {
+            const moduleList = document.getElementById('moduleList');
+            
+            if (!platformData || platformData.length === 0) {
+                moduleList.innerHTML = '<div class="text-gray-500 text-center py-4">暂无数据</div>';
+                return;
+            }
+            
+            let html = '';
+            platformData.forEach(module => {
+                html += `
+                    <div class="permission-item flex items-center p-2 hover:bg-gray-50 cursor-pointer" data-id="${module.id}" onclick="selectModule('${module.id}')">
+                        <input type="checkbox" class="mr-2" onchange="toggleModuleSelection('${module.id}')">
+                        <span>${module.name}</span>
+                    </div>
+                `;
+            });
+            
+            moduleList.innerHTML = html;
+        }
+        
+        /**
+         * 选择模块
+         */
+        function selectModule(moduleId) {
+            const platformData = mockPermissionsData[currentPlatform] || [];
+            const module = platformData.find(m => m.id === moduleId);
+            
+            if (!module || !module.children) {
+                document.getElementById('functionList').innerHTML = '<div class="text-gray-500 text-center py-4">暂无功能</div>';
+                return;
+            }
+            
+            // 加载功能列表
+            let html = '';
+            module.children.forEach(func => {
+                html += `
+                    <div class="permission-item flex items-center p-2 hover:bg-gray-50 cursor-pointer" data-id="${func.id}" onclick="selectFunction('${func.id}')">
+                        <input type="checkbox" class="mr-2" onchange="toggleFunctionSelection('${func.id}')">
+                        <span>${func.name}</span>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('functionList').innerHTML = html;
+            document.getElementById('buttonList').innerHTML = '<div class="text-gray-500 text-center py-4">请先选择功能</div>';
+        }
+        
+        /**
+         * 选择功能
+         */
+        function selectFunction(functionId) {
+            const platformData = mockPermissionsData[currentPlatform] || [];
+            
+            // 查找包含该功能的模块
+            let targetFunction = null;
+            for (const module of platformData) {
+                const func = module.children?.find(f => f.id === functionId);
+                if (func) {
+                    targetFunction = func;
+                    break;
+                }
+            }
+            
+            if (!targetFunction || !targetFunction.children) {
+                document.getElementById('buttonList').innerHTML = '<div class="text-gray-500 text-center py-4">暂无按钮权限</div>';
+                return;
+            }
+            
+            // 加载按钮权限列表
+            let html = '';
+            targetFunction.children.forEach(button => {
+                const isSelected = selectedPermissions.has(button.id);
+                html += `
+                    <div class="permission-item flex items-center p-2 hover:bg-gray-50 cursor-pointer" data-id="${button.id}">
+                        <input type="checkbox" class="mr-2" ${isSelected ? 'checked' : ''} onchange="togglePermissionSelection('${button.id}')">
+                        <span>${button.name}</span>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('buttonList').innerHTML = html;
+        }
+        
+        /**
+         * 切换模块选择
+         */
+        function toggleModuleSelection(moduleId) {
+            // TODO: 实现模块选择逻辑
+            console.log('切换模块选择:', moduleId);
+        }
+        
+        /**
+         * 切换功能选择
+         */
+        function toggleFunctionSelection(functionId) {
+            // TODO: 实现功能选择逻辑
+            console.log('切换功能选择:', functionId);
+        }
+        
+        /**
+         * 切换权限选择
+         */
+        function togglePermissionSelection(permissionId) {
+            if (selectedPermissions.has(permissionId)) {
+                selectedPermissions.delete(permissionId);
+            } else {
+                selectedPermissions.add(permissionId);
+            }
+        }
+        
+        /**
+         * 全选模块
+         */
+        function selectAllModules() {
+            console.log('全选模块');
+            // TODO: 实现全选模块逻辑
+        }
+        
+        /**
+         * 清空模块
+         */
+        function clearAllModules() {
+            console.log('清空模块');
+            // TODO: 实现清空模块逻辑
+        }
+        
+        /**
+         * 全选功能
+         */
+        function selectAllFunctions() {
+            console.log('全选功能');
+            // TODO: 实现全选功能逻辑
+        }
+        
+        /**
+         * 清空功能
+         */
+        function clearAllFunctions() {
+            console.log('清空功能');
+            // TODO: 实现清空功能逻辑
+        }
+        
+        /**
+         * 全选按钮权限
+         */
+        function selectAllButtons() {
+            console.log('全选按钮权限');
+            // TODO: 实现全选按钮权限逻辑
+        }
+        
+        /**
+         * 清空按钮权限
+         */
+        function clearAllButtons() {
+            console.log('清空按钮权限');
+            // TODO: 实现清空按钮权限逻辑
+        }
+        
+        /**
+         * 保存权限配置
+         */
+        function savePermissions() {
+            console.log('保存权限配置', {
+                levelId: currentEditingLevel,
+                platform: currentPlatform,
+                permissions: Array.from(selectedPermissions)
+            });
+            
+            alert(`权限配置已保存！选中了 ${selectedPermissions.size} 个权限`);
+            closePermissionModal();
+        }
+    </script>
+        </div>
+    </div>
+</body>
+</html>

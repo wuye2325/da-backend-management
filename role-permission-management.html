@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色权限管理 - 大家共治后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/top-navigation.js"></script>
+    <script src="js/tab-system.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/search-component.js"></script>
+    <script src="components/toggle-switch.js"></script>
+    <script src="js/AddRoleModal.js"></script>
+    <script src="js/role-permission.js"></script>
+    <style>
+        .sidebar-transition {
+            transition: all 0.3s ease;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal.show {
+            display: flex !important;
+            opacity: 1;
+        }
+        .modal-content {
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+        /* 设置不同弹窗的层级 */
+        #roleModal {
+            z-index: 1000;
+        }
+        #permissionModal {
+            z-index: 1010;
+        }
+        #userAssignModal {
+            z-index: 1020;
+        }
+        .permission-tree {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .tree-node {
+            margin-left: 20px;
+        }
+        .tree-checkbox {
+            margin-right: 8px;
+        }
+        /* 确保弹窗内容不会溢出 */
+        .modal-dialog {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- 侧边栏容器 -->
+        <div id="sidebar-container"></div>
+        
+        <!-- 主内容区域 -->
+        <div id="main-content" class="layout-main-content flex-1 flex flex-col">
+            <!-- 顶部导航容器 -->
+            <div id="top-navigation-container"></div>
+
+            <!-- 页面内容 -->
+            <main class="flex-1 p-6 overflow-auto">
+                <!-- 页面标题 -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-2">角色权限管理</h1>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="openAddRoleModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>新增
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 搜索区域 -->
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <div class="flex gap-4 items-end">
+                        <!-- 状态下拉框 - 占2.5列等效 -->
+                        <div class="flex-none" style="width: 20.83%;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">状态</label>
+                            <div class="h-10">
+                                <select id="filterStatus" class="w-full h-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">全部</option>
+                                    <option value="enabled">启用</option>
+                                    <option value="disabled">停用</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 权限范围下拉框 - 占2.5列等效 -->
+                        <div class="flex-none" style="width: 20.83%;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">权限范围</label>
+                            <div class="h-10">
+                                <select id="filterPermissionScope" class="w-full h-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">全部</option>
+                                    <option value="pc">PC中台</option>
+                                    <option value="miniprogram">小程序</option>
+                                    <option value="backend">总后台</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 名称搜索框（不带搜索重置按钮）- 占3列等效 -->
+                        <div class="flex-none" style="width: 25%;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">名称</label>
+                            <div class="h-10">
+                                <input type="text" id="nameSearch" placeholder="请输入角色名称" class="w-full h-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        
+                        <!-- 描述搜索框（带搜索重置按钮）- 占剩余空间 -->
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">描述</label>
+                            <div class="flex space-x-2 h-10">
+                                <input type="text" id="descriptionSearch" placeholder="请输入角色描述" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button onclick="searchRoles()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors h-full">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button onclick="resetFilters()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors h-full">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 角色列表 -->
+                <div class="bg-white rounded-lg shadow">
+
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">角色名称</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">角色描述</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户数量</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">适用平台</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roleTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- 角色数据将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                     <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                        <!-- 左侧：记录信息和分页条数选择器 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div class="text-sm text-gray-500">
+                                显示 <span id="startRecord" class="font-medium">1</span>-<span id="endRecord" class="font-medium">10</span> 条，共 <span id="totalRecords" class="font-medium">156</span> 条记录
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600">每页显示</label>
+                                <select class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="10" selected>10条</option>
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧：分页控件 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <!-- 页码按钮组 -->
+                            <div class="flex items-center space-x-1">
+                                <!-- 上一页 -->
+                                <button id="prevBtn" class="px-3 py-1 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" onclick="previousPage()" disabled>
+                                    <i class="fas fa-chevron-left mr-1"></i>上一页
+                                </button>
+                                
+                                <!-- 页码按钮 -->
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded font-medium">1</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">4</button>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">5</button>
+                                <span class="px-2 py-1 text-sm text-gray-500">...</span>
+                                <button class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">16</button>
+                                
+                                <!-- 下一页 -->
+                                <button id="nextBtn" class="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50" onclick="nextPage()">
+                                    下一页<i class="fas fa-chevron-right ml-1"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- 页码跳转 -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600">跳转到</span>
+                                <input type="number" min="1" max="16" value="1" class="w-16 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <span class="text-sm text-gray-600">页</span>
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 新增角色弹窗组件将通过JavaScript动态创建 -->
+
+    <!-- 编辑角色弹窗 -->
+    <div id="roleModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-4xl modal-dialog">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 id="roleModalTitle" class="text-lg font-semibold text-gray-900">编辑角色</h3>
+                    <button onclick="closeRoleModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="roleForm" class="p-6">
+                <!-- 角色名称和描述在同一排 -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">角色名称 <span class="text-red-500">*</span></label>
+                        <input type="text" id="roleName" name="roleName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入角色名称">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">角色描述</label>
+                        <input type="text" id="roleDescription" name="roleDescription" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入角色描述">
+                    </div>
+                </div>
+                
+
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeRoleModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button type="button" onclick="saveRole()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        保存角色
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 权限配置弹窗 -->
+    <div id="permissionModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-6xl modal-dialog" style="width: 80%; max-width: 1000px;">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">权限配置</h3>
+                    <button onclick="closePermissionModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div class="permission-cascade">
+                    <!-- 端选择 -->
+                    <div class="cascade-level mb-6">
+                        <h4 class="text-base font-medium text-gray-900 mb-3">选择端</h4>
+                        <div class="platform-tabs flex space-x-4 border-b">
+                            <button type="button" id="tabAdmin" class="tab-btn px-4 py-2 text-gray-500 hover:text-gray-700" data-platform="admin">总后台</button>
+                            <button type="button" id="tabPc" class="tab-btn px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium" data-platform="pc">PC中台</button>
+                            <button type="button" id="tabMobile" class="tab-btn px-4 py-2 text-gray-500 hover:text-gray-700" data-platform="mobile">小程序</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 级联权限选择区域 -->
+                    <div class="cascade-container grid grid-cols-3 gap-6 mb-6">
+                        <!-- 模块选择 -->
+                        <div class="cascade-column">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="text-sm font-medium text-gray-700">模块</h5>
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="selectAllModules()" class="text-xs text-blue-600 hover:text-blue-800">全选</button>
+                                    <button type="button" onclick="clearAllModules()" class="text-xs text-gray-500 hover:text-gray-700">清空</button>
+                                </div>
+                            </div>
+                            <div id="moduleList" class="cascade-list border border-gray-300 rounded-lg p-3 h-64 overflow-y-auto"></div>
+                        </div>
+                        
+                        <!-- 功能选择 -->
+                        <div class="cascade-column">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="text-sm font-medium text-gray-700">功能</h5>
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="selectAllFunctions()" class="text-xs text-blue-600 hover:text-blue-800">全选</button>
+                                    <button type="button" onclick="clearAllFunctions()" class="text-xs text-gray-500 hover:text-gray-700">清空</button>
+                                </div>
+                            </div>
+                            <div id="functionList" class="cascade-list border border-gray-300 rounded-lg p-3 h-64 overflow-y-auto"></div>
+                        </div>
+                        
+                        <!-- 按钮权限选择 -->
+                        <div class="cascade-column">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="text-sm font-medium text-gray-700">按钮权限</h5>
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="selectAllButtons()" class="text-xs text-blue-600 hover:text-blue-800">全选</button>
+                                    <button type="button" onclick="clearAllButtons()" class="text-xs text-gray-500 hover:text-gray-700">清空</button>
+                                </div>
+                            </div>
+                            <div id="buttonList" class="cascade-list border border-gray-300 rounded-lg p-3 h-64 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closePermissionModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button type="button" onclick="savePermissions()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                         保存权限
+                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户分配弹窗 -->
+    <div id="userAssignModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-4xl modal-dialog">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">用户分配</h3>
+                    <button onclick="closeUserAssignModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- 搜索区域 -->
+                <div class="mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="text" id="userSearchInput" placeholder="搜索用户姓名或邮箱..." 
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 pl-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       oninput="searchUsers()">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400 text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="clearUserSearch()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-times"></i> 清空
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-medium text-gray-700">可分配用户</h4>
+                            <span class="text-xs text-gray-500">共 <span id="availableUsersCount">0</span> 人</span>
+                        </div>
+                        <div class="border border-gray-300 rounded-lg p-4 h-80 overflow-y-auto bg-gray-50">
+                            <div id="availableUsersList">
+                                <!-- 可分配用户列表将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-medium text-gray-700">已分配用户</h4>
+                            <span class="text-xs text-gray-500">共 <span id="assignedUsersCount">0</span> 人</span>
+                        </div>
+                        <div class="border border-gray-300 rounded-lg p-4 h-80 overflow-y-auto bg-green-50">
+                            <div id="assignedUsersList">
+                                <!-- 已分配用户列表将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeUserAssignModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button type="button" onclick="saveUserAssignment()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        保存分配
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入新增角色弹窗组件 -->
+    <script src="components/AddRoleModal.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initPage === 'function') {
+                initPage('role-permission-management');
+            }
+        });
+    </script>
+</body>
+</html>
