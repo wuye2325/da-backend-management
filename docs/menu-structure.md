@@ -31,7 +31,7 @@
 ### 1. 首页 (Home)
 - **菜单标题**: 首页
 - **图标**: `fas fa-home`
-- **页面文件**: `home-dashboard.html`
+- **页面文件**: `index.html`
 - **菜单类型**: 单级菜单
 - **功能描述**: 系统主页，显示关键指标和数据概览
 
@@ -187,7 +187,7 @@ const menuConfig = {
     home: {
         title: '首页',
         icon: 'fas fa-home',
-        href: 'home-dashboard.html',
+        href: 'index.html',
         type: 'single'
     },
     authCenter: {
@@ -307,7 +307,7 @@ const menuConfig = {
 
 | 页面文件 | 菜单名称 | 功能说明 |
 |---------|---------|---------|
-| home-dashboard.html | 首页 | 系统主页和数据概览 |
+| index.html | 首页 | 系统主页和数据概览 |
 | community-management.html | 小区管理 | 小区信息和授权管理 |
 | authorization-levels.html | 授权等级管理 | 权限等级配置 |
 | template-config.html | 流程模板 | 审批流程模板管理 |

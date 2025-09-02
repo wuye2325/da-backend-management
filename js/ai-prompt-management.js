@@ -135,7 +135,7 @@ const mockPrompts = [
                 status: '停用'
             }
         ]
-    }
+    },
 ];
 
 /**
@@ -262,7 +262,7 @@ function initSearchComponent() {
     if (window.SearchComponent) {
         searchComponent = new window.SearchComponent({
             container: searchContainer,
-            placeholder: '搜索提示词标题...',
+            placeholder: '请输入...',
             onSearch: handleSearch,
             onReset: handleSearchReset
         });
@@ -306,6 +306,11 @@ function initPromptData() {
 function initFilterDropdowns() {
     const roleFilter = document.getElementById('role-filter');
     const categoryFilter = document.getElementById('category-filter');
+    const titleFilter = document.getElementById('title-filter');
+    const contentFilter = document.getElementById('content-filter');
+    const startDateFilter = document.getElementById('start-date-filter');
+    const endDateFilter = document.getElementById('end-date-filter');
+    const statusFilter = document.getElementById('status-filter');
     
     if (roleFilter) {
         roleFilter.addEventListener('change', applyFilters);
@@ -313,6 +318,26 @@ function initFilterDropdowns() {
     
     if (categoryFilter) {
         categoryFilter.addEventListener('change', applyFilters);
+    }
+    
+    if (titleFilter) {
+        titleFilter.addEventListener('input', applyFilters);
+    }
+    
+    if (contentFilter) {
+        contentFilter.addEventListener('input', applyFilters);
+    }
+    
+    if (startDateFilter) {
+        startDateFilter.addEventListener('change', applyFilters);
+    }
+    
+    if (endDateFilter) {
+        endDateFilter.addEventListener('change', applyFilters);
+    }
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyFilters);
     }
 }
 
@@ -323,6 +348,11 @@ function applyFilters() {
     const searchTerm = searchComponent ? searchComponent.getValue().toLowerCase().trim() : '';
     const roleFilter = document.getElementById('role-filter')?.value || '';
     const categoryFilter = document.getElementById('category-filter')?.value || '';
+    const titleFilter = document.getElementById('title-filter')?.value.toLowerCase().trim() || '';
+    const contentFilter = document.getElementById('content-filter')?.value.toLowerCase().trim() || '';
+    const startDateFilter = document.getElementById('start-date-filter')?.value || '';
+    const endDateFilter = document.getElementById('end-date-filter')?.value || '';
+    const statusFilter = document.getElementById('status-filter')?.value || '';
     
     filteredPrompts = currentPrompts.filter(prompt => {
         // 搜索关键词筛选
@@ -337,7 +367,39 @@ function applyFilters() {
         // 分类筛选（只在AI润色tab页生效）
         const matchesCategory = !categoryFilter || !prompt.aiCategory || prompt.aiCategory === categoryFilter;
         
-        return matchesSearch && matchesLocation && matchesRole && matchesCategory;
+        // 提示词标题筛选
+        const matchesTitle = !titleFilter || prompt.name.toLowerCase().includes(titleFilter);
+        
+        // 提示词内容筛选
+        const matchesContent = !contentFilter || prompt.content.toLowerCase().includes(contentFilter);
+        
+        // 状态筛选
+        const matchesStatus = !statusFilter || prompt.status === statusFilter;
+        
+        // 时间范围筛选
+        let matchesDateRange = true;
+        if (startDateFilter || endDateFilter) {
+            // 将提示词创建时间转换为日期对象进行比较
+            const promptDate = new Date(prompt.createTime);
+            
+            if (startDateFilter) {
+                const startDate = new Date(startDateFilter);
+                if (promptDate < startDate) {
+                    matchesDateRange = false;
+                }
+            }
+            
+            if (endDateFilter) {
+                const endDate = new Date(endDateFilter);
+                // 将结束日期设置为当天的23:59:59
+                endDate.setHours(23, 59, 59, 999);
+                if (promptDate > endDate) {
+                    matchesDateRange = false;
+                }
+            }
+        }
+        
+        return matchesSearch && matchesLocation && matchesRole && matchesCategory && matchesTitle && matchesContent && matchesStatus && matchesDateRange;
     });
     
     currentPage = 1;
@@ -359,9 +421,19 @@ function handleSearchReset() {
     // 重置角色筛选下拉框
     const roleFilter = document.getElementById('role-filter');
     const categoryFilter = document.getElementById('category-filter');
+    const titleFilter = document.getElementById('title-filter');
+    const contentFilter = document.getElementById('content-filter');
+    const startDateFilter = document.getElementById('start-date-filter');
+    const endDateFilter = document.getElementById('end-date-filter');
+    const statusFilter = document.getElementById('status-filter');
     
     if (roleFilter) roleFilter.value = '';
     if (categoryFilter) categoryFilter.value = '';
+    if (titleFilter) titleFilter.value = '';
+    if (contentFilter) contentFilter.value = '';
+    if (startDateFilter) startDateFilter.value = '';
+    if (endDateFilter) endDateFilter.value = '';
+    if (statusFilter) statusFilter.value = '';
     
     // 重新应用筛选（保持当前标签页的位置筛选）
     applyFilters();
@@ -408,6 +480,9 @@ function renderPromptsTable() {
 
     // 更新分页信息
     updatePagination();
+    
+    // 绑定悬停事件
+    bindHoverEvents();
 }
 
 /**
@@ -439,6 +514,9 @@ function createPromptRow(prompt) {
             <span class="text-sm font-medium text-gray-900">${prompt.name}</span>
         </div>`;
     
+    // 提示词内容列：显示部分内容，悬停时显示全文
+    const contentPreview = prompt.content.length > 20 ? prompt.content.substring(0, 20) + '...' : prompt.content;
+    
     // 根据当前标签页决定是否显示分类列
     const isAiPolishTab = currentLocationFilter === 'AI润色';
     const categoryCell = isAiPolishTab ? 
@@ -451,6 +529,9 @@ function createPromptRow(prompt) {
             ${titleContent}
         </td>
         ${categoryCell}
+        <td class="px-6 py-4 text-sm text-gray-500 prompt-content-cell" data-full-content="${prompt.content.replace(/"/g, '&quot;')}">
+            ${contentPreview}
+        </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
             ${prompt.applicationRole}
         </td>
@@ -697,6 +778,7 @@ function closePromptModal() {
 
 
 
+
 /**
  * 关闭删除模态框
  */
@@ -838,8 +920,6 @@ function openDeleteModal(prompt) {
     
     modal.classList.remove('hidden');
 }
-
-
 
 
 
@@ -1003,6 +1083,9 @@ function createHistoryVersionRow(prompt, historyVersion, index) {
             ${prompt.aiCategory || '-'}
         </td>` : '';
     
+    // 提示词内容列：显示部分内容，悬停时显示全文
+    const contentPreview = historyVersion.content.length > 20 ? historyVersion.content.substring(0, 20) + '...' : historyVersion.content;
+    
     row.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
             <div class="flex items-center space-x-2 ml-6">
@@ -1010,6 +1093,9 @@ function createHistoryVersionRow(prompt, historyVersion, index) {
             </div>
         </td>
         ${categoryCell}
+        <td class="px-6 py-4 text-sm text-gray-500 prompt-content-cell" data-full-content="${historyVersion.content.replace(/"/g, '&quot;')}">
+            ${contentPreview}
+        </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
             ${prompt.applicationRole}
         </td>
@@ -1126,6 +1212,83 @@ function generateNewVersionNumber(currentVersion) {
     return 'v' + (versionNum + 1).toString();
 }
 
+/**
+ * 绑定悬停事件
+ */
+function bindHoverEvents() {
+    // 移除之前可能存在的tooltip
+    const existingTooltip = document.getElementById('custom-tooltip');
+    if (existingTooltip) {
+        existingTooltip.remove();
+    }
+    
+    // 为所有内容单元格添加悬停事件
+    const contentCells = document.querySelectorAll('.prompt-content-cell');
+    contentCells.forEach(cell => {
+        // 移除之前可能绑定的事件监听器
+        const clone = cell.cloneNode(true);
+        cell.parentNode.replaceChild(clone, cell);
+        
+        // 添加新的事件监听器
+        clone.addEventListener('mouseenter', function(e) {
+            const fullContent = this.getAttribute('data-full-content');
+            if (fullContent && fullContent.length > 20) {
+                showTooltip(e, fullContent);
+            }
+        });
+        
+        clone.addEventListener('mouseleave', function() {
+            hideTooltip();
+        });
+    });
+}
+
+/**
+ * 显示tooltip
+ * @param {Event} e - 鼠标事件
+ * @param {string} content - 要显示的内容
+ */
+function showTooltip(e, content) {
+    // 创建或获取tooltip元素
+    let tooltip = document.getElementById('custom-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'custom-tooltip';
+        tooltip.className = 'tooltip';
+        document.body.appendChild(tooltip);
+    }
+    
+    // 设置内容
+    tooltip.textContent = content;
+    
+    // 显示tooltip
+    tooltip.style.display = 'block';
+    
+    // 定位tooltip
+    const rect = e.target.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    
+    tooltip.style.top = (rect.bottom + scrollTop + 10) + 'px';
+    tooltip.style.left = (rect.left + scrollLeft) + 'px';
+    
+    // 确保tooltip不会超出屏幕右侧
+    const tooltipRect = tooltip.getBoundingClientRect();
+    if (tooltipRect.right > window.innerWidth) {
+        tooltip.style.left = (window.innerWidth - tooltipRect.width - 10) + 'px';
+    }
+}
+
+/**
+ * 隐藏tooltip
+ */
+function hideTooltip() {
+    const tooltip = document.getElementById('custom-tooltip');
+    if (tooltip) {
+        tooltip.style.display = 'none';
+    }
+}
+
 // 将函数暴露到全局作用域
 window.toggleVersionHistory = toggleVersionHistory;
 window.handleHistoryStatusToggle = handleHistoryStatusToggle;
@@ -1133,6 +1296,20 @@ window.editHistoryVersion = editHistoryVersion;
 window.deleteHistoryVersion = deleteHistoryVersion;
 
 // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', initPromptManagement);
-
-// 函数已通过全局作用域可用，无需导出
+document.addEventListener('DOMContentLoaded', function() {
+    initPromptManagement();
+    
+    // 监听窗口点击事件，用于隐藏tooltip
+    document.addEventListener('click', function(e) {
+        const tooltip = document.getElementById('custom-tooltip');
+        if (tooltip && tooltip.style.display !== 'none') {
+            // 检查点击是否在tooltip或内容单元格上
+            const isOnTooltip = tooltip.contains(e.target);
+            const isOnContentCell = e.target.closest('.prompt-content-cell');
+            
+            if (!isOnTooltip && !isOnContentCell) {
+                hideTooltip();
+            }
+        }
+    });
+});

@@ -137,7 +137,7 @@ class TabSystem {
     getPageTitle(pageUrl) {
         const pageTitleMap = {
             // 首页
-            'home-dashboard.html': '首页',
+            'index.html': '首页',
             
             // 授权中心
             'community-management.html': '小区管理',
@@ -623,7 +623,7 @@ class TabSystem {
          this.stateManager.clearState();
          
          // 跳转到首页页面
-         const workspaceUrl = 'home-dashboard.html';
+         const workspaceUrl = 'index.html';
          if (window.location.pathname.split('/').pop() !== workspaceUrl) {
              // 如果当前不在首页页面，则跳转
              window.location.href = workspaceUrl;

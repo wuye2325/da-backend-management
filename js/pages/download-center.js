@@ -300,6 +300,9 @@ function createFileRow(item) {
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.applicant}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.generateTime || '-'}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.fileSize || '-'}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            ${createStatusTag(item)}
+        </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
             ${createActionButtons(item)}
         </td>
@@ -329,6 +332,30 @@ function createActionButtons(item) {
             <button class="text-gray-400 cursor-not-allowed" disabled>
                 下载
             </button>
+        `;
+    }
+}
+
+/**
+ * 创建状态标签
+ */
+function createStatusTag(item) {
+    // 检查文件是否生成成功（生成时间和文件大小不为空）
+    const isGenerated = item.generateTime && item.fileSize;
+    
+    if (isGenerated) {
+        // 生成成功，显示绿色标签
+        return `
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                已生成
+            </span>
+        `;
+    } else {
+        // 生成失败，显示黄色标签
+        return `
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                处理中
+            </span>
         `;
     }
 }

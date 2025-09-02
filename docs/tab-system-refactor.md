@@ -24,7 +24,7 @@
 // 新的页面标题映射
 const pageTitleMap = {
     // 首页
-    'home-dashboard.html': '首页',
+    'index.html': '首页',
     
     // 授权中心
     'community-management.html': '小区管理',
@@ -82,7 +82,7 @@ html += `
 为所有主要页面文件添加了 `tab-system.js` 的引入，确保页签系统在所有页面中都能正常工作：
 
 **已更新的页面文件**:
-- `home-dashboard.html`
+- `index.html`
 - `community-management.html`
 - `authorization-levels.html`
 - `ai-prompt-management.html`

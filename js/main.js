@@ -14,7 +14,7 @@ const AppState = {
 const pageRoutes = {
     'home-dashboard': {
         title: '首页仪表板',
-        path: 'home-dashboard.html'
+        path: 'index.html'
     },
     'community-management': {
         title: '小区管理',

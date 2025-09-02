@@ -422,7 +422,7 @@ function renderSidebar(currentPage = '') {
         home: {
             title: '首页',
             icon: 'fas fa-home',
-            href: 'home-dashboard.html',
+            href: 'index.html',
             type: 'single'
         },
         authCenter: {
@@ -524,7 +524,7 @@ function renderSidebar(currentPage = '') {
     function isActiveMenuItem(href) {
         if (!href) return false;
         const currentPath = window.location.pathname;
-        const fileName = currentPath.split('/').pop() || 'home-dashboard.html';
+        const fileName = currentPath.split('/').pop() || 'index.html';
         return fileName === href || currentPage === href.replace('.html', '');
     }
 
@@ -684,7 +684,7 @@ function getPageInfo(pageUrl) {
     const pageMap = {
         // 首页
         'workspace-refactored.html': { title: '首页', category: null, categoryTitle: null },
-        'home-dashboard.html': { title: '首页', category: null, categoryTitle: null },
+        'index.html': { title: '首页', category: null, categoryTitle: null },
         
         // 基本资料管理
         'resident-management.html': { title: '业主管理', category: 'basicData', categoryTitle: '基本资料管理' },
@@ -758,7 +758,7 @@ function getPageBreadcrumb() {
     const breadcrumb = [];
     
     // 如果是首页页面，只显示首页
-    if (fileName === 'workspace-refactored.html' || fileName === 'home-dashboard.html') {
+    if (fileName === 'workspace-refactored.html' || fileName === 'index.html') {
         breadcrumb.push({
             title: '首页',
             href: null, // 当前页面不需要链接
@@ -769,7 +769,7 @@ function getPageBreadcrumb() {
         // 对于其他页面，首先添加首页作为第一级
         breadcrumb.push({
             title: '首页',
-            href: 'home-dashboard.html', // 可点击返回首页
+            href: 'index.html', // 可点击返回首页
             isActive: false,
             icon: 'fas fa-home' // 添加首页图标
         });

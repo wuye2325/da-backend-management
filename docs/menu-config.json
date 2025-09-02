@@ -7,7 +7,7 @@
       "id": "home",
       "title": "首页",
       "icon": "fas fa-home",
-      "href": "home-dashboard.html",
+      "href": "index.html",
       "type": "single",
       "order": 1,
       "description": "系统主页，显示关键指标和数据概览",
@@ -247,7 +247,7 @@
     "pageFiles": 13
   },
   "pageMapping": {
-    "home-dashboard.html": {
+    "index.html": {
       "menuId": "home",
       "breadcrumb": ["首页"]
     },
