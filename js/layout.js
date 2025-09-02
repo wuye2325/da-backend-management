@@ -506,6 +506,11 @@ function renderSidebar(currentPage = '') {
                     icon: 'fas fa-cog',
                     href: 'system-logs.html'
                 },
+                passwordRecovery: {
+                    title: '密码找回管理',
+                    icon: 'fas fa-key',
+                    href: 'password-recovery-management.html'
+                },
                 systemSettings: {
                     title: '系统配置',
                     icon: 'fas fa-sliders-h',
@@ -723,6 +728,7 @@ function getPageInfo(pageUrl) {
         'department-management.html': { title: '部门管理', category: 'systemManagement', categoryTitle: '系统管理' },
         'property-management.html': { title: '物业公司管理', category: 'systemManagement', categoryTitle: '系统管理' },
         'system-logs.html': { title: '系统日志', category: 'systemManagement', categoryTitle: '系统管理' },
+        'password-recovery-management.html': { title: '密码找回管理', category: 'systemManagement', categoryTitle: '系统管理' },
         'download-center.html': { title: '下载中心', category: 'systemManagement', categoryTitle: '系统管理' },
         'system-config.html': { title: '系统配置', category: 'systemManagement', categoryTitle: '系统管理' },
         'data-dictionary.html': { title: '数据字典', category: 'systemManagement', categoryTitle: '系统管理' },
